@@ -219,7 +219,6 @@ def : Pat<
 >;
 }
 
-
 defm : Arithmetic_i16_Pats<add, V_ADD_U16_e32>;
 defm : Arithmetic_i16_Pats<sub, V_SUB_U16_e32>;
 defm : Arithmetic_i16_Pats<smin, V_MIN_U16_e32>;
@@ -228,32 +227,4 @@ defm : Arithmetic_i16_Pats<smax, V_MAX_U16_e32>;
 defm : Bits_Ops_i16_Pats<shl, V_LSHLREV_B16_e32>;
 defm : Bits_Ops_i16_Pats<srl, V_LSHRREV_B16_e32>;
 defm : Bits_Ops_i16_Pats<sra, V_ASHRREV_B16_e32>;
-
-
-//defm : i16_arithmetic_pats<umin, V_MIN_U16_e32>;
-//defm : i16_arithmetic_pats<umax, V_MAX_U16_e32>;
-
-
-//Fixme: do we need setcc instruction?
-//defm : i16_arithmetic_pats<setcc, V_ASHRREV_B16_e32>;
-
-//Looks like we don't need the and, or, xor instructions for i16
-//defm : i16_arithmetic_pats<and, V_AND_B16_e32>;
-//defm : i16_arithmetic_pats<or, V_OR_B16_e32>;
-//defm : i16_arithmetic_pats<xor, V_XOR_B16_e32>;
-
-//Fixme: do we need rotr, rotl instructions?
-//defm : i16_arithmetic_pats<rotr, V_ROTR_B32_e32>;  //???
-//defm : i16_arithmetic_pats<rotl, V_ROTL_B32_e32>;  //???
-
-//defm : i16_arithmetic_pats<sdiv, V_SDIV_B32_e32>;  // ???
-//defm : i16_arithmetic_pats<udiv, V_UDIV_B32_e32>; // ???
-
-//defm : i16_arithmetic_pats<srem, V_SREM_B32_e32>; // ???
-//defm : i16_arithmetic_pats<urem, V_UREM_B32_e32>; // ???
-defm : i16_arithmetic_pats<mul, V_MUL_F16_e32>; //???
-
-//defm : i16_arithmetic_pats<bswap, V_BSWAP_U16_e32>;
-//defm : i16_arithmetic_pats<cttz, V_CTTZ_U16_e32>;
-//defm : i16_arithmetic_pats<crrz_zero_undef, V_MUL_U16_e32>;
 } // End Predicates = [isVI]
