@@ -160,30 +160,100 @@ class ZExt_i16_i1_Pat <SDNode ext> : Pat <
 >;
 
 def : ZExt_i16_i1_Pat<zext>;
-
-
+def : ZExt_i16_i1_Pat<anyext>;
 
 def : Pat <
   (i16 (select i1:$src0, i16:$src1, i16:$src2)),
   (V_CNDMASK_B32_e64 $src2, $src1, $src0)
 >;
 
-// 16-bit instructions produce a 0 result in the high 16-bits.
-def : Pat <
-  (add i16:$src0, i16:$src1),
-  (V_ADD_U16_e32 $src0, $src1)
+// Note: 16-bit instructions produce a 0 result in the high 16-bits.
+multiclass Arithmetic_i16_Pats <SDPatternOperator op, Instruction inst> {
+
+def : Pat<
+  (op i16:$src0, i16:$src1),
+  (inst i16:$src0, i16:$src1)
 >;
 
-def : Pat <
-  (i32 (zext (add i16:$src0, i16:$src1))),
-  (V_ADD_U16_e32 i16:$src0, i16:$src1)
+def : Pat<
+  (i32 (zext (op i16:$src0, i16:$src1))),
+  (inst i16:$src0, i16:$src1)
 >;
 
-def : Pat <
-  (i64 (zext (add i16:$src0, i16:$src1))),
+def : Pat<
+  (i64 (zext (op i16:$src0, i16:$src1))),
    (REG_SEQUENCE VReg_64,
-     (V_ADD_U16_e32 i16:$src0, i16:$src1), sub0,
-     (V_MOV_B32_e32 (i32 0)), sub1)
+     (inst i16:$src0, i16:$src1), sub0,
+     (S_MOV_B32_e32 (i32 0)), sub1)
+>;
+}
+
+multiclass Bits_Ops_i16_Pats <SDPatternOperator op, Instruction inst> {
+
+def : Pat<
+  (op i16:$src0, i32:$src1),
+  (inst i16:$src0, i32:$src1)
 >;
 
+def : Pat<
+  (i32 (zext (op i16:$src0, i32:$src1))),
+  (inst i16:$src0, i32:$src1)
+>;
+
+//===----------------------------------------------------------------------===//
+// DS_PERMUTE/DS_BPERMUTE Instructions.
+//===----------------------------------------------------------------------===//
+
+let Uses = [EXEC] in {
+defm DS_PERMUTE_B32 : DS_1A1D_PERMUTE <0x3e, "ds_permute_b32", VGPR_32,
+                                       int_amdgcn_ds_permute>;
+defm DS_BPERMUTE_B32 : DS_1A1D_PERMUTE <0x3f, "ds_bpermute_b32", VGPR_32,
+                                       int_amdgcn_ds_bpermute>;
+}
+
+def : Pat<
+  (i64 (zext (op i16:$src0, i32:$src1))),
+   (REG_SEQUENCE VReg_64,
+     (inst i16:$src0, i32:$src1), sub0,
+     (S_MOV_B32_e32 (i32 0)), sub1)
+>;
+}
+
+
+defm : Arithmetic_i16_Pats<add, V_ADD_U16_e32>;
+defm : Arithmetic_i16_Pats<sub, V_SUB_U16_e32>;
+defm : Arithmetic_i16_Pats<smin, V_MIN_U16_e32>;
+defm : Arithmetic_i16_Pats<smax, V_MAX_U16_e32>;
+
+defm : Bits_Ops_i16_Pats<shl, V_LSHLREV_B16_e32>;
+defm : Bits_Ops_i16_Pats<srl, V_LSHRREV_B16_e32>;
+defm : Bits_Ops_i16_Pats<sra, V_ASHRREV_B16_e32>;
+
+
+//defm : i16_arithmetic_pats<umin, V_MIN_U16_e32>;
+//defm : i16_arithmetic_pats<umax, V_MAX_U16_e32>;
+
+
+//Fixme: do we need setcc instruction?
+//defm : i16_arithmetic_pats<setcc, V_ASHRREV_B16_e32>;
+
+//Looks like we don't need the and, or, xor instructions for i16
+//defm : i16_arithmetic_pats<and, V_AND_B16_e32>;
+//defm : i16_arithmetic_pats<or, V_OR_B16_e32>;
+//defm : i16_arithmetic_pats<xor, V_XOR_B16_e32>;
+
+//Fixme: do we need rotr, rotl instructions?
+//defm : i16_arithmetic_pats<rotr, V_ROTR_B32_e32>;  //???
+//defm : i16_arithmetic_pats<rotl, V_ROTL_B32_e32>;  //???
+
+//defm : i16_arithmetic_pats<sdiv, V_SDIV_B32_e32>;  // ???
+//defm : i16_arithmetic_pats<udiv, V_UDIV_B32_e32>; // ???
+
+//defm : i16_arithmetic_pats<srem, V_SREM_B32_e32>; // ???
+//defm : i16_arithmetic_pats<urem, V_UREM_B32_e32>; // ???
+defm : i16_arithmetic_pats<mul, V_MUL_F16_e32>; //???
+
+//defm : i16_arithmetic_pats<bswap, V_BSWAP_U16_e32>;
+//defm : i16_arithmetic_pats<cttz, V_CTTZ_U16_e32>;
+//defm : i16_arithmetic_pats<crrz_zero_undef, V_MUL_U16_e32>;
 } // End Predicates = [isVI]
