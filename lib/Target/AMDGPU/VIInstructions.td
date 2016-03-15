@@ -184,7 +184,7 @@ def : Pat<
   (i64 (zext (op i16:$src0, i16:$src1))),
    (REG_SEQUENCE VReg_64,
      (inst i16:$src0, i16:$src1), sub0,
-     (S_MOV_B32_e32 (i32 0)), sub1)
+     (S_MOV_B32 (i32 0)), sub1)
 >;
 }
 
@@ -215,7 +215,7 @@ def : Pat<
   (i64 (zext (op i16:$src0, i32:$src1))),
    (REG_SEQUENCE VReg_64,
      (inst i16:$src0, i32:$src1), sub0,
-     (S_MOV_B32_e32 (i32 0)), sub1)
+     (S_MOV_B32 (i32 0)), sub1)
 >;
 }
 
