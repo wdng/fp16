@@ -53,6 +53,81 @@ define void @shl_v4i32(<4 x i32> addrspace(1)* %out, <4 x i32> addrspace(1)* %in
   ret void
 }
 
+;EG-LABEL: {{^}}shl_i16:
+;EG: SUB_INT {{\*? *}}[[COMPSH:T[0-9]+\.[XYZW]]], {{literal.[xy]}}, [[SHIFT:T[0-9]+\.[XYZW]]]
+;EG: LSHR {{\* *}}[[TEMP:T[0-9]+\.[XYZW]]], [[OPLO:T[0-9]+\.[XYZW]]], {{[[COMPSH]]|PV.[XYZW]}}
+;EG-DAG: ADD_INT {{\*? *}}[[BIGSH:T[0-9]+\.[XYZW]]], [[SHIFT]], literal
+;EG-DAG: LSHR {{\*? *}}[[OVERF:T[0-9]+\.[XYZW]]], {{[[TEMP]]|PV.[XYZW]}}, 1
+;EG-DAG: LSHL {{\*? *}}[[HISMTMP:T[0-9]+\.[XYZW]]], [[OPHI:T[0-9]+\.[XYZW]]], [[SHIFT]]
+;EG-DAG: OR_INT {{\*? *}}[[HISM:T[0-9]+\.[XYZW]]], {{[[HISMTMP]]|PV.[XYZW]|PS}}, {{[[OVERF]]|PV.[XYZW]}}
+;EG-DAG: LSHL {{\*? *}}[[LOSM:T[0-9]+\.[XYZW]]], [[OPLO]], {{PS|[[SHIFT]]|PV.[XYZW]}}
+;EG-DAG: SETGT_UINT {{\*? *}}[[RESC:T[0-9]+\.[XYZW]]], [[SHIFT]], literal
+;EG-DAG: CNDE_INT {{\*? *}}[[RESLO:T[0-9]+\.[XYZW]]], {{T[0-9]+\.[XYZW]}}
+;EG-DAG: CNDE_INT {{\*? *}}[[RESHI:T[0-9]+\.[XYZW]]], {{T[0-9]+\.[XYZW], .*}}, 0.0
+
+;SI: {{^}}shl_i16:
+;SI: v_lshl_b16 {{v\[[0-9]+:[0-9]+\], v\[[0-9]+:[0-9]+\], v[0-9]+}}
+
+;VI: {{^}}shl_i16:
+;VI: v_lshlrev_b16 {{v\[[0-9]+:[0-9]+\], v[0-9]+, v\[[0-9]+:[0-9]+\]}}
+
+define void @shl_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %in) {
+  %b_ptr = getelementptr i16, i16 addrspace(1)* %in, i16 1
+  %a = load i16, i16 addrspace(1) * %in
+  %b = load i16, i16 addrspace(1) * %b_ptr
+  %result = shl i16 %a, %b
+  store i16 %result, i16 addrspace(1)* %out
+  ret void
+}
+
+;EG: {{^}}shl_v2i16:
+;EG: LSHL {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+;EG: LSHL {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+
+;SI: {{^}}shl_v2i16:
+;SI: v_lshl_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;SI: v_lshl_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+
+;VI: {{^}}shl_v2i16:
+;VI: v_lshlrev_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;VI: v_lshlrev_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+
+define void @shl_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> addrspace(1)* %in) {
+  %b_ptr = getelementptr <2 x i16>, <2 x i16> addrspace(1)* %in, i16 1
+  %a = load <2 x i16>, <2 x i16> addrspace(1) * %in
+  %b = load <2 x i16>, <2 x i16> addrspace(1) * %b_ptr
+  %result = shl <2 x i16> %a, %b
+  store <2 x i16> %result, <2 x i16> addrspace(1)* %out
+  ret void
+}
+
+;EG: {{^}}shl_v4i16:
+;EG: LSHL {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+;EG: LSHL {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+;EG: LSHL {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+;EG: LSHL {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+
+;SI: {{^}}shl_v4i16:
+;SI: v_lshl_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;SI: v_lshl_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;SI: v_lshl_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;SI: v_lshl_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+
+;VI: {{^}}shl_v4i16:
+;VI: v_lshlrev_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;VI: v_lshlrev_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;VI: v_lshlrev_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+;VI: v_lshlrev_b32_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+
+define void @shl_v4i16(<4 x i16> addrspace(1)* %out, <4 x i16> addrspace(1)* %in) {
+  %b_ptr = getelementptr <4 x i16>, <4 x i16> addrspace(1)* %in, i16 1
+  %a = load <4 x i16>, <4 x i16> addrspace(1) * %in
+  %b = load <4 x i16>, <4 x i16> addrspace(1) * %b_ptr
+  %result = shl <4 x i16> %a, %b
+  store <4 x i16> %result, <4 x i16> addrspace(1)* %out
+  ret void
+}
+
 ;EG-LABEL: {{^}}shl_i64:
 ;EG: SUB_INT {{\*? *}}[[COMPSH:T[0-9]+\.[XYZW]]], {{literal.[xy]}}, [[SHIFT:T[0-9]+\.[XYZW]]]
 ;EG: LSHR {{\* *}}[[TEMP:T[0-9]+\.[XYZW]]], [[OPLO:T[0-9]+\.[XYZW]]], {{[[COMPSH]]|PV.[XYZW]}}
