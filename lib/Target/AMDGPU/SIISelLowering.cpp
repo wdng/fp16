@@ -34,6 +34,7 @@
 #include "llvm/CodeGen/Analysis.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Function.h"
+#include "llvm/ADT/SmallString.h"
 
 using namespace llvm;
 
@@ -78,6 +79,23 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
 
   computeRegisterProperties(STI.getRegisterInfo());
 
+  setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
+  setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
+  setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v16i32, Expand);
+  setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v16f32, Expand);
+
+  setOperationAction(ISD::ADD, MVT::i32, Legal);
+  setOperationAction(ISD::ADDC, MVT::i32, Legal);
+  setOperationAction(ISD::ADDE, MVT::i32, Legal);
+  setOperationAction(ISD::SUBC, MVT::i32, Legal);
+  setOperationAction(ISD::SUBE, MVT::i32, Legal);
+
+  setOperationAction(ISD::FSIN, MVT::f32, Custom);
+  setOperationAction(ISD::FCOS, MVT::f32, Custom);
+
+  setOperationAction(ISD::FMINNUM, MVT::f64, Legal);
+  setOperationAction(ISD::FMAXNUM, MVT::f64, Legal);
+
   // We need to custom lower vector stores from local memory
   setOperationAction(ISD::LOAD, MVT::v2i32, Custom);
   setOperationAction(ISD::LOAD, MVT::v4i32, Custom);
@@ -113,24 +131,108 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::TRUNCATE, MVT::v2i32, Expand);
   setOperationAction(ISD::FP_ROUND, MVT::v2f32, Expand);
 
+  setOperationAction(ISD::BSWAP, MVT::i32, Legal);
+  setOperationAction(ISD::BITREVERSE, MVT::i32, Legal);
+
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1, Legal);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::v2i1, Custom);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::v4i1, Custom);
+
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i8, Legal);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::v2i8, Custom);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::v4i8, Custom);
+
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i16, Legal);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::v2i16, Custom);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::v4i16, Custom);
+
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i32, Legal);
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::Other, Custom);
 
+  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::Other, Custom);
   setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::f32, Custom);
+  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::v16i8, Custom);
   setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::v4f32, Custom);
   setOperationAction(ISD::INTRINSIC_W_CHAIN, MVT::Other, Custom);
 
+  setOperationAction(ISD::INTRINSIC_VOID, MVT::Other, Custom);
   setOperationAction(ISD::BRCOND, MVT::Other, Custom);
   setOperationAction(ISD::BR_CC, MVT::i1, Expand);
   setOperationAction(ISD::BR_CC, MVT::i32, Expand);
   setOperationAction(ISD::BR_CC, MVT::i64, Expand);
   setOperationAction(ISD::BR_CC, MVT::f32, Expand);
   setOperationAction(ISD::BR_CC, MVT::f64, Expand);
+
+  // On SI this is s_memtime and s_memrealtime on VI.
+  setOperationAction(ISD::READCYCLECOUNTER, MVT::i64, Legal);
+
+  for (MVT VT : MVT::integer_valuetypes()) {
+    if (VT == MVT::i64)
+      continue;
+
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::i1, Promote);
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::i8, Legal);
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::i16, Legal);
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::i32, Expand);
+
+    setLoadExtAction(ISD::ZEXTLOAD, VT, MVT::i1, Promote);
+    setLoadExtAction(ISD::ZEXTLOAD, VT, MVT::i8, Legal);
+    setLoadExtAction(ISD::ZEXTLOAD, VT, MVT::i16, Legal);
+    setLoadExtAction(ISD::ZEXTLOAD, VT, MVT::i32, Expand);
+
+    setLoadExtAction(ISD::EXTLOAD, VT, MVT::i1, Promote);
+    setLoadExtAction(ISD::EXTLOAD, VT, MVT::i8, Legal);
+    setLoadExtAction(ISD::EXTLOAD, VT, MVT::i16, Legal);
+    setLoadExtAction(ISD::EXTLOAD, VT, MVT::i32, Expand);
+  }
+
+  for (MVT VT : MVT::integer_vector_valuetypes()) {
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::v8i16, Expand);
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::v16i16, Expand);
+  }
+
+  for (MVT VT : MVT::fp_valuetypes())
+    setLoadExtAction(ISD::EXTLOAD, VT, MVT::f32, Expand);
+
+  setLoadExtAction(ISD::EXTLOAD, MVT::v2f64, MVT::v2f16, Expand);
+  setLoadExtAction(ISD::EXTLOAD, MVT::v2f64, MVT::v2f32, Expand);
+
+  setTruncStoreAction(MVT::i64, MVT::i32, Expand);
+  setTruncStoreAction(MVT::v8i32, MVT::v8i16, Expand);
+  setTruncStoreAction(MVT::v16i32, MVT::v16i8, Expand);
+  setTruncStoreAction(MVT::v16i32, MVT::v16i16, Expand);
+
+
+  setTruncStoreAction(MVT::v2i64, MVT::v2i32, Expand);
+
+  setTruncStoreAction(MVT::v2f64, MVT::v2f32, Expand);
+  setTruncStoreAction(MVT::v2f64, MVT::v2f16, Expand);
+
+  setOperationAction(ISD::LOAD, MVT::i1, Custom);
+
+  setOperationAction(ISD::LOAD, MVT::v2i64, Promote);
+  AddPromotedToType(ISD::LOAD, MVT::v2i64, MVT::v4i32);
+
+  setOperationAction(ISD::STORE, MVT::v2i64, Promote);
+  AddPromotedToType(ISD::STORE, MVT::v2i64, MVT::v4i32);
+
+  setOperationAction(ISD::ConstantPool, MVT::v2i64, Expand);
+
+  setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+  setOperationAction(ISD::GlobalAddress, MVT::i64, Custom);
+  setOperationAction(ISD::FrameIndex, MVT::i32, Custom);
+
+  // These should use UDIVREM, so set them to expand
+  setOperationAction(ISD::UDIV, MVT::i64, Expand);
+  setOperationAction(ISD::UREM, MVT::i64, Expand);
+
+  setOperationAction(ISD::SELECT_CC, MVT::i1, Expand);
+  setOperationAction(ISD::SELECT, MVT::i1, Promote);
+
+  setOperationAction(ISD::TRUNCATE, MVT::v2i32, Expand);
+
+
+  setOperationAction(ISD::FP_ROUND, MVT::v2f32, Expand);
 
   // We only support LOAD/STORE and vector manipulation ops for vectors
   // with > 4 elements.
@@ -618,8 +720,11 @@ SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG,
   const SIRegisterInfo *TRI = getSubtarget()->getRegisterInfo();
   unsigned InputPtrReg = TRI->getPreloadedValue(MF, SIRegisterInfo::KERNARG_SEGMENT_PTR);
 
+  Type *Ty = VT.getTypeForEVT(*DAG.getContext());
+
   MachineRegisterInfo &MRI = DAG.getMachineFunction().getRegInfo();
   MVT PtrVT = getPointerTy(DL, AMDGPUAS::CONSTANT_ADDRESS);
+  PointerType *PtrTy = PointerType::get(Ty, AMDGPUAS::CONSTANT_ADDRESS);
   SDValue BasePtr = DAG.getCopyFromReg(Chain, SL,
                                        MRI.getLiveInVirtReg(InputPtrReg), PtrVT);
   return DAG.getNode(ISD::ADD, SL, PtrVT, BasePtr,
@@ -717,6 +822,9 @@ SDValue SITargetLowering::LowerFormalArguments(
       } else {
         Splits.push_back(Arg);
       }
+
+    } else if (Info->getShaderType() != ShaderType::COMPUTE) {
+      Splits.push_back(Arg);
     }
   }
 
@@ -1758,6 +1866,7 @@ SDValue SITargetLowering::LowerBRCOND(SDValue BRCOND,
 
   assert(!SetCC ||
         (SetCC->getConstantOperandVal(1) == 1 &&
+         isCFIntrinsic(Intr) &&
          cast<CondCodeSDNode>(SetCC->getOperand(2).getNode())->get() ==
                                                              ISD::SETNE));
 
@@ -2427,23 +2536,8 @@ SDValue SITargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
   ISD::LoadExtType ExtType = Load->getExtensionType();
   EVT MemVT = Load->getMemoryVT();
 
-  if (MemVT == MVT::i16) {
-    assert(Load->getValueType(0) == MVT::i16);
-
-    SDValue ExtLoad = DAG.getExtLoad(ISD::EXTLOAD, DL, MVT::i32, Load->getChain(),
-                                     Load->getBasePtr(), MVT::i16,
-                                     Load->getMemOperand());
-
-    SDValue Ops[] = {
-      DAG.getNode(ISD::TRUNCATE, DL, MVT::i16, ExtLoad),
-      ExtLoad.getValue(1)
-    };
-
-    return DAG.getMergeValues(Ops, DL);
-  }
-
   if (ExtType == ISD::NON_EXTLOAD && MemVT.getSizeInBits() < 32) {
-    assert(MemVT == MVT::i1 && "Only i1 non-extloads expected");
+    //assert(MemVT == MVT::i1 && "Only i1 non-extloads expected");
     // FIXME: Copied from PPC
     // First, load into 32 bits, then truncate to 1 bit.
 
@@ -2451,8 +2545,10 @@ SDValue SITargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
     SDValue BasePtr = Load->getBasePtr();
     MachineMemOperand *MMO = Load->getMemOperand();
 
+    EVT mem_vt = (MemVT == MVT::i1) ? MVT::i8 : MVT::i16;
+
     SDValue NewLD = DAG.getExtLoad(ISD::EXTLOAD, DL, MVT::i32, Chain,
-                                   BasePtr, MVT::i8, MMO);
+                                   BasePtr, mem_vt, MMO);
 
     SDValue Ops[] = {
       DAG.getNode(ISD::TRUNCATE, DL, MemVT, NewLD),
@@ -2467,6 +2563,8 @@ SDValue SITargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
 
   assert(Op.getValueType().getVectorElementType() == MVT::i32 &&
          "Custom lowering for non-i32 vectors hasn't been implemented.");
+  unsigned NumElements = MemVT.getVectorNumElements();
+  assert(NumElements != 2 && "v2 loads are supported for all address spaces.");
 
   unsigned AS = Load->getAddressSpace();
   if (!allowsMemoryAccess(*DAG.getContext(), DAG.getDataLayout(), MemVT,
