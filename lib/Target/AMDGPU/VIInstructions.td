@@ -105,13 +105,24 @@ let Predicates = [isVI] in {
 def : Pat <
   (int_amdgcn_mov_dpp i32:$src, imm:$dpp_ctrl, imm:$row_mask, imm:$bank_mask,
                       imm:$bound_ctrl),
-  (V_MOV_B32_dpp $src, (as_i32imm $dpp_ctrl), (as_i32imm $row_mask),
-                       (as_i32imm $bank_mask), (as_i1imm $bound_ctrl))
+  (i32 (V_MOV_B32_dpp $src, (as_i32imm $dpp_ctrl), (as_i32imm $row_mask),
+                       (as_i32imm $bank_mask), (as_i1imm $bound_ctrl)))
 >;
 
 //===----------------------------------------------------------------------===//
 // Misc Patterns
 //===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
+// DS_PERMUTE/DS_BPERMUTE Instructions.
+//===----------------------------------------------------------------------===//
+
+let Uses = [EXEC] in {
+defm DS_PERMUTE_B32 : DS_1A1D_PERMUTE <0x3e, "ds_permute_b32", VGPR_32,
+                                       int_amdgcn_ds_permute>;
+defm DS_BPERMUTE_B32 : DS_1A1D_PERMUTE <0x3f, "ds_bpermute_b32", VGPR_32,
+                                       int_amdgcn_ds_bpermute>;
+}
 
 //===----------------------------------------------------------------------===//
 // i16 Patterns
@@ -200,16 +211,6 @@ def : Pat<
   (inst i16:$src0, i32:$src1)
 >;
 
-//===----------------------------------------------------------------------===//
-// DS_PERMUTE/DS_BPERMUTE Instructions.
-//===----------------------------------------------------------------------===//
-
-let Uses = [EXEC] in {
-defm DS_PERMUTE_B32 : DS_1A1D_PERMUTE <0x3e, "ds_permute_b32", VGPR_32,
-                                       int_amdgcn_ds_permute>;
-defm DS_BPERMUTE_B32 : DS_1A1D_PERMUTE <0x3f, "ds_bpermute_b32", VGPR_32,
-                                       int_amdgcn_ds_bpermute>;
-}
 
 def : Pat<
   (i64 (zext (op i16:$src0, i32:$src1))),
