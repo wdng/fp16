@@ -47,14 +47,10 @@ define void @ashr_v4i32(<4 x i32> addrspace(1)* %out, <4 x i32> addrspace(1)* %i
 }
 
 ; FUNC-LABEL: {{^}}ashr_v2i16:
-; SI: v_ashr_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; SI: v_ashr_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_ashrrev_b16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_ashrrev_b16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
 
-; VI: v_ashrrev_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; VI: v_ashrrev_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
 
-; EG: ASHR {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-; EG: ASHR {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 define void @ashr_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> addrspace(1)* %in) {
   %b_ptr = getelementptr <2 x i16>, <2 x i16> addrspace(1)* %in, i16 1
   %a = load <2 x i16>, <2 x i16> addrspace(1)* %in
@@ -65,20 +61,9 @@ define void @ashr_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> addrspace(1)* %i
 }
 
 ; FUNC-LABEL: {{^}}ashr_v4i16:
-; SI: v_ashr_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; SI: v_ashr_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; SI: v_ashr_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; SI: v_ashr_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-
-; VI: v_ashrrev_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; VI: v_ashrrev_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; VI: v_ashrrev_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-; VI: v_ashrrev_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
-
-; EG: ASHR {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-; EG: ASHR {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-; EG: ASHR {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-; EG: ASHR {{\*? *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
+; VI: v_ashrrev_b16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_ashrrev_b16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_ashrrev_b16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
 define void @ashr_v4i16(<4 x i16> addrspace(1)* %out, <4 x i16> addrspace(1)* %in) {
   %b_ptr = getelementptr <4 x i16>, <4 x i16> addrspace(1)* %in, i16 1
   %a = load <4 x i16>, <4 x i16> addrspace(1)* %in

@@ -1,9 +1,10 @@
-; RUN: llc -march=amdgcn < %s | FileCheck -check-prefix=VI -check-prefix=FUNC %s
+; RUN: llc < %s -march=amdgcn -mcpu=fiji -verify-machineinstrs | FileCheck -check-prefix=GCN -check-prefix=VI %s
+
 
 declare i32 @llvm.amdgcn.workitem.id.x() nounwind readnone
 
 ; FUNC-LABEL: {{^}}v_test_imax_sge_i16:
-; VI: v_max_i16_e32
+; VI: v_max_u16_e32 v{{[0-9]+}}, v{{[0-9]+}}, v{{[0-9]+}}
 define void @v_test_imax_sge_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %aptr, i16 addrspace(1)* %bptr) nounwind {
   %tid = call i32 @llvm.amdgcn.workitem.id.x() nounwind readnone
   %gep0 = getelementptr i16, i16 addrspace(1)* %aptr, i32 %tid
@@ -18,10 +19,10 @@ define void @v_test_imax_sge_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %aptr
 }
 
 ; FUNC-LABEL: {{^}}v_test_imax_sge_v4i16:
-; VI: v_max_i16_e32
-; VI: v_max_i16_e32
-; VI: v_max_i16_e32
-; VI: v_max_i16_e32
+; VI: v_max_u16_e32 v{{[0-9]+, [0-9]+, [0-9]+}}
+; VI: v_max_u16_e32 v{{[0-9]+, [0-9]+, [0-9]+}}
+; VI: v_max_u16_e32 v{{[0-9]+, [0-9]+, [0-9]+}}
+; VI: v_max_u16_e32 v{{[0-9]+, [0-9]+, [0-9]+}}
 define void @v_test_imax_sge_v4i16(<4 x i16> addrspace(1)* %out, <4 x i16> addrspace(1)* %aptr, <4 x i16> addrspace(1)* %bptr) nounwind {
   %tid = call i32 @llvm.amdgcn.workitem.id.x() nounwind readnone
   %gep0 = getelementptr <4 x i16>, <4 x i16> addrspace(1)* %aptr, i32 %tid
@@ -46,6 +47,7 @@ define void @s_test_imax_sge_i16(i16 addrspace(1)* %out, i16 %a, i16 %b) nounwin
 
 ; FUNC-LABEL: {{^}}s_test_imax_sge_imm_i16:
 ; VI: s_max_i16 {{s[0-9]+}}, {{s[0-9]+}}, 9
+
 define void @s_test_imax_sge_imm_i16(i16 addrspace(1)* %out, i16 %a) nounwind {
   %cmp = icmp sge i16 %a, 9
   %val = select i1 %cmp, i16 %a, i16 9

@@ -54,7 +54,7 @@ define void @test_sub_v4i32(<4 x i32> addrspace(1)* %out, <4 x i32> addrspace(1)
   ret void
 }
 
-; SI: v_subrev_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
 define void @test_sub_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %in) {
     %b_ptr = getelementptr i16, i16 addrspace(1)* %in, i16 1
     %a = load i16, i16 addrspace(1)* %in 
@@ -68,8 +68,8 @@ define void @test_sub_i16(i16 addrspace(1)* %out, i16 addrspace(1)* %in) {
 ; EG: SUB_INT {{\** *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 ; EG: SUB_INT {{\** *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 
-; SI: v_sub_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
-; SI: v_sub_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
 
 define void @test_sub_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> addrspace(1)* %in) {
     %b_ptr = getelementptr <2 x i16>, <2 x i16> addrspace(1)* %in, i16 1
@@ -86,10 +86,10 @@ define void @test_sub_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> addrspace(1)
 ; EG: SUB_INT {{\** *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 ; EG: SUB_INT {{\** *}}T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 
-; SI: v_sub_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
-; SI: v_sub_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
-; SI: v_sub_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
-; SI: v_sub_i16_e32 v{{[0-9]+, vcc, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
+; VI: v_sub_i16_e32 v{{[0-9]+, v[0-9]+, v[0-9]+}}
 
 define void @test_sub_v4i16(<4 x i16> addrspace(1)* %out, <4 x i16> addrspace(1)* %in) {
     %b_ptr = getelementptr <4 x i16>, <4 x i16> addrspace(1)* %in, i16 1
