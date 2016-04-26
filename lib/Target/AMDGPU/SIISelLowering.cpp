@@ -332,11 +332,19 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
 
     setOperationAction(ISD::SMIN, MVT::i16, Legal);
     setOperationAction(ISD::SMAX, MVT::i16, Legal);
-    setOperationAction(ISD::UMIN, MVT::i16, Legal);
-    setOperationAction(ISD::UMAX, MVT::i16, Legal);
+    //setOperationAction(ISD::UMIN, MVT::i16, Legal);
+    setOperationAction(ISD::UMIN, MVT::i16, Promote);
+    AddPromotedToType(ISD::UMIN, MVT::i16, MVT::i32);
+	
+    //setOperationAction(ISD::UMAX, MVT::i16, Legal);
+    setOperationAction(ISD::UMAX, MVT::i16, Promote);
+    AddPromotedToType(ISD::UMAX, MVT::i16, MVT::i32);
+	
 
-    setOperationAction(ISD::SETCC, MVT::i16, Legal);
-    setOperationAction(ISD::TRUNCATE, MVT::i16, Legal);
+    //setOperationAction(ISD::SETCC, MVT::i16, Legal);
+    setOperationAction(ISD::SETCC, MVT::i16, Promote);   // wei
+    AddPromotedToType(ISD::SETCC, MVT::i16, MVT::i32);  // wei
+    //setOperationAction(ISD::TRUNCATE, MVT::i16, Legal);
 
     setOperationAction(ISD::SIGN_EXTEND, MVT::i16, Promote);
     AddPromotedToType(ISD::SIGN_EXTEND, MVT::i16, MVT::i32);
@@ -376,7 +384,13 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
     setLoadExtAction(ISD::ZEXTLOAD, MVT::i64, MVT::i16, Expand);
     setLoadExtAction(ISD::EXTLOAD, MVT::i64, MVT::i16, Expand);
 
+    setLoadExtAction(ISD::SEXTLOAD, MVT::i16, MVT::i8, Promote);
+    setLoadExtAction(ISD::ZEXTLOAD, MVT::i16, MVT::i8, Promote);
+    setLoadExtAction(ISD::EXTLOAD, MVT::i16, MVT::i8, Promote);
+
     setTruncStoreAction(MVT::i64, MVT::i16, Expand);
+    setTruncStoreAction(MVT::i16, MVT::i8, Promote);
+	
   }
 
   setTargetDAGCombine(ISD::FADD);
@@ -3507,6 +3521,7 @@ SDValue SITargetLowering::PerformDAGCombine(SDNode *N,
   case AMDGPUISD::FMAX_LEGACY: {
     if (DCI.getDAGCombineLevel() >= AfterLegalizeDAG &&
         N->getValueType(0) != MVT::f64 &&
+        N->getValueType(0) != MVT::i16 &&    //wei
         getTargetMachine().getOptLevel() > CodeGenOpt::None)
       return performMinMaxCombine(N, DCI);
     break;

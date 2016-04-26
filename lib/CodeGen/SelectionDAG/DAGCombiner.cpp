@@ -7294,12 +7294,14 @@ SDValue DAGCombiner::visitTRUNCATE(SDNode *N) {
       LoadSDNode *LN0 = cast<LoadSDNode>(N0);
       if (!LN0->isVolatile() &&
           LN0->getMemoryVT().getStoreSizeInBits() < VT.getSizeInBits()) {
+          if (!LegalOperations || TLI.isLoadExtLegal(LN0->getExtensionType(), VT, LN0->getMemoryVT())){
         SDValue NewLoad = DAG.getExtLoad(LN0->getExtensionType(), SDLoc(LN0),
                                          VT, LN0->getChain(), LN0->getBasePtr(),
                                          LN0->getMemoryVT(),
                                          LN0->getMemOperand());
         DAG.ReplaceAllUsesOfValueWith(N0.getValue(1), NewLoad.getValue(1));
         return NewLoad;
+          	}
       }
     }
   }
