@@ -390,6 +390,15 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
 
     setTruncStoreAction(MVT::i64, MVT::i16, Expand);
     setTruncStoreAction(MVT::i16, MVT::i8, Promote);
+
+    setOperationAction(ISD::UINT_TO_FP, MVT::i16, Promote);
+	AddPromotedToType(ISD::UINT_TO_FP, MVT::i16, MVT::i32);
+    setOperationAction(ISD::SINT_TO_FP, MVT::i16, Promote);
+	AddPromotedToType(ISD::SINT_TO_FP, MVT::i16, MVT::i32);
+    setOperationAction(ISD::FP16_TO_FP, MVT::i16, Promote);
+	AddPromotedToType(ISD::FP16_TO_FP, MVT::i16, MVT::i32);
+    setOperationAction(ISD::FP_TO_FP16, MVT::i16, Promote);
+	AddPromotedToType(ISD::FP_TO_FP16, MVT::i16, MVT::i32);
 	
   }
 
