@@ -591,15 +591,14 @@ void SelectionDAGLegalize::LegalizeStoreOps(SDNode *Node) {
             ReplaceNode(SDValue(Node, 0), Res);
           return;
         }
-	 case TargetLowering::Promote: {
-	    EVT NVT = EVT::getIntegerVT(*DAG.getContext(),
-									  VT.getStoreSizeInBits()*2);
-	    assert(StVT.isInteger() && "type is an integer");
-	    Value = DAG.getNode(ISD::ANY_EXTEND, dl, NVT, ST->getValue());
-	    SDValue Result = DAG.getTruncStore(Chain, dl, Value, Ptr, ST->getPointerInfo(),
+	    case TargetLowering::Promote: {
+	      EVT NVT = EVT::getIntegerVT(*DAG.getContext(), VT.getStoreSizeInBits()*2);
+	      assert(StVT.isInteger() && "type is an integer");
+	      Value = DAG.getNode(ISD::ANY_EXTEND, dl, NVT, ST->getValue());
+	      SDValue Result = DAG.getTruncStore(Chain, dl, Value, Ptr, ST->getPointerInfo(),
 							  StVT, isVolatile, isNonTemporal, Alignment, AAInfo);
-	    ReplaceNode(SDValue(Node, 0), Result);
-           break;
+	      ReplaceNode(SDValue(Node, 0), Result);
+          break;
         }	
         case TargetLowering::Expand:
           assert(!StVT.isVector() &&
@@ -834,13 +833,11 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
       }
       break;
     }
-    case TargetLowering::Promote: { //wei
-    
+    case TargetLowering::Promote: {
       EVT OVT = Node->getValueType(0);
-     //EVT OVT = LD->getMemoryVT();
       EVT NewOutTy;
 
-	// Scan for the appropriate larger type to use.
+	  // Scan for the appropriate larger type to use.
       while (1) {
         NewOutTy = (MVT::SimpleValueType)(OVT.getSimpleVT().SimpleTy+1);
         assert(NewOutTy.isInteger() && "Ran out of possibilities!");
@@ -850,16 +847,14 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
         }
       }
 
-	SDValue Load = DAG.getExtLoad(LD->getExtensionType(), dl,
+	  SDValue Load = DAG.getExtLoad(LD->getExtensionType(), dl,
 									NewOutTy,
 									Chain, Ptr, SrcVT,
 									LD->getMemOperand());
-	//Load->dump(&DAG);
-	Value = DAG.getNode(ISD::TRUNCATE, dl, Node->getValueType(0), Load);
-	Chain = Load.getValue(1);
-	
-	break;  
-    }  //wei
+	  Value = DAG.getNode(ISD::TRUNCATE, dl, Node->getValueType(0), Load);
+	  Chain = Load.getValue(1);
+	  break;  
+    }  
     case TargetLowering::Expand:
       EVT DestVT = Node->getValueType(0);
       if (!TLI.isLoadExtLegal(ISD::EXTLOAD, DestVT, SrcVT)) {
