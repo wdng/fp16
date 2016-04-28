@@ -161,9 +161,20 @@ def : Pat<
 >;
 
 def : Pat<
+  (i32 (zext i16:$src)), 
+  (S_AND_B32 (i32 0xffff), $src)
+>;
+
+def : Pat<
   (i16 (trunc i32:$src)),
   (COPY $src)
 >;
+
+def : Pat <
+  (i16 (trunc i64:$src)),
+  (EXTRACT_SUBREG $src, sub0)
+>;
+
 
 class ZExt_i16_i1_Pat <SDNode ext> : Pat <
   (i16 (ext i1:$src)),
