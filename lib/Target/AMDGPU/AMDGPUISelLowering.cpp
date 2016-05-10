@@ -584,18 +584,34 @@ bool AMDGPUTargetLowering::aggressivelyPreferBuildVectorSources(EVT VecVT) const
 
 bool AMDGPUTargetLowering::isTruncateFree(EVT Source, EVT Dest) const {
   // Truncate is just accessing a subregister.
-  return Dest.bitsLT(Source) && (Dest.getSizeInBits() % 32 == 0);
+
+  unsigned SrcSize = Source.getSizeInBits();
+  unsigned DestSize = Dest.getSizeInBits();
+  
+  if (DestSize == 16 && Subtarget->has16BitInsts()) 
+  	return SrcSize >= 32;
+
+  return DestSize < SrcSize && DestSize % 32 == 0 ;
 }
 
 bool AMDGPUTargetLowering::isTruncateFree(Type *Source, Type *Dest) const {
   // Truncate is just accessing a subregister.
-  return Dest->getPrimitiveSizeInBits() < Source->getPrimitiveSizeInBits() &&
-         (Dest->getPrimitiveSizeInBits() % 32 == 0);
+
+  unsigned SrcSize = Source->getScalarSizeInBits();
+  unsigned DestSize = Dest->getScalarSizeInBits();
+
+  if (DestSize== 16 && Subtarget->has16BitInsts()) 
+  	return SrcSize >= 32;
+
+  return DestSize < SrcSize && DestSize % 32 == 0;
 }
 
 bool AMDGPUTargetLowering::isZExtFree(Type *Src, Type *Dest) const {
   unsigned SrcSize = Src->getScalarSizeInBits();
   unsigned DestSize = Dest->getScalarSizeInBits();
+
+  if (SrcSize== 16 && Subtarget->has16BitInsts()) 
+      return DestSize >= 32;
 
   return SrcSize == 32 && DestSize == 64;
 }
@@ -605,6 +621,10 @@ bool AMDGPUTargetLowering::isZExtFree(EVT Src, EVT Dest) const {
   // practical purposes, the extra mov 0 to load a 64-bit is free.  As used,
   // this will enable reducing 64-bit operations the 32-bit, which is always
   // good.
+
+  if (Src == MVT::i16)
+  	return Dest == MVT::i32 ||Dest == MVT::i64 ;
+  
   return Src == MVT::i32 && Dest == MVT::i64;
 }
 
