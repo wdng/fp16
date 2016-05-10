@@ -1,5 +1,6 @@
-; RUN: llc -march=amdgcn -verify-machineinstrs < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
-; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
+; RUN: llc -march=amdgcn -mcpu=SI -verify-machineinstrs < %s | FileCheck -check-prefix=SI -check-prefix=FUNC -check-prefix=GCN %s
+; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=VI -check-prefix=FUNC -check-prefix=GCN %s
+; RUN: llc -march=amdgcn -mcpu=fiji -verify-machineinstrs < %s | FileCheck -check-prefix=VI -check-prefix=FUNC -check-prefix=GCN %s
 ; RUN: llc -march=r600 -mcpu=cypress -verify-machineinstrs < %s | FileCheck -check-prefix=EG -check-prefix=FUNC %s
 
 declare i7 @llvm.ctlz.i7(i7, i1) nounwind readnone
@@ -97,12 +98,13 @@ define void @v_ctlz_v4i32(<4 x i32> addrspace(1)* noalias %out, <4 x i32> addrsp
 }
 
 ; FUNC-LABEL: {{^}}v_ctlz_i8:
-; SI: buffer_load_ubyte [[VAL:v[0-9]+]],
-; SI-DAG: v_ffbh_u32_e32 [[FFBH:v[0-9]+]], [[VAL]]
-; SI-DAG: v_cmp_eq_i32_e32 vcc, 0, [[CTLZ]]
-; SI-DAG: v_cndmask_b32_e64 [[CORRECTED_FFBH:v[0-9]+]], [[FFBH]], 32, vcc
+; GCN: buffer_load_ubyte [[VAL:v[0-9]+]],
+; GCN-DAG: v_ffbh_u32_e32 [[FFBH:v[0-9]+]], [[VAL]]
+; GCN-DAG: v_cmp_eq_i32_e32 vcc, 0, [[CTLZ]]
+; GCN-DAG: v_cndmask_b32_e64 [[CORRECTED_FFBH:v[0-9]+]], [[FFBH]], 32, vcc
 ; SI: v_add_i32_e32 [[RESULT:v[0-9]+]], vcc, 0xffffffe8, [[CORRECTED_FFBH]]
-; SI: buffer_store_byte [[RESULT]],
+; VI: v_add_u16_e32 [[RESULT:v[0-9]+]], 0xffffffe8, [[CORRECTED_FFBH]]
+; GCN: buffer_store_byte [[RESULT]],
 define void @v_ctlz_i8(i8 addrspace(1)* noalias %out, i8 addrspace(1)* noalias %valptr) nounwind {
   %val = load i8, i8 addrspace(1)* %valptr
   %ctlz = call i8 @llvm.ctlz.i8(i8 %val, i1 false) nounwind readnone
