@@ -170,6 +170,12 @@ def : Pat<
   (COPY $src)
 >;
 
+def : Pat<
+  (i1 (trunc i16:$src)),
+  (COPY $src)
+>;
+
+
 def : Pat <
   (i16 (trunc i64:$src)),
   (EXTRACT_SUBREG $src, sub0)
@@ -231,10 +237,28 @@ def : Pat<
 >;
 }
 
+//conversion patterns
+
+def : Pat< 
+    (f32 (f16_to_fp i16:$src)),
+    (V_CVT_F32_F16_e32 $src)
+>;
+
+def : Pat< 
+    (i16 (fp_to_f16 f32:$src)),
+    (V_CVT_F16_F32_e32 $src)
+>;
+
+
 defm : Arithmetic_i16_Pats<add, V_ADD_U16_e32>;
 defm : Arithmetic_i16_Pats<sub, V_SUB_U16_e32>;
 defm : Arithmetic_i16_Pats<smin, V_MIN_U16_e32>;
 defm : Arithmetic_i16_Pats<smax, V_MAX_U16_e32>;
+
+defm : Arithmetic_i16_Pats<and, V_AND_B32_e32>;
+defm : Arithmetic_i16_Pats<or, V_OR_B32_e32>;
+defm : Arithmetic_i16_Pats<xor, V_XOR_B32_e32>;
+
 
 defm : Bits_Ops_i16_Pats<shl, V_LSHLREV_B16_e32>;
 defm : Bits_Ops_i16_Pats<srl, V_LSHRREV_B16_e32>;
