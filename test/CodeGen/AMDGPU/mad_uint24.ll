@@ -1,11 +1,13 @@
-; RUN: llc < %s -march=amdgcn -verify-machineinstrs | FileCheck %s --check-prefix=SI --check-prefix=FUNC
-; RUN: llc < %s -march=amdgcn -mcpu=tonga -verify-machineinstrs | FileCheck %s --check-prefix=SI --check-prefix=FUNC
 ; RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s --check-prefix=EG --check-prefix=FUNC
 ; RUN: llc < %s -march=r600 -mcpu=cayman | FileCheck %s --check-prefix=EG --check-prefix=FUNC
+; RUN: llc < %s -march=amdgcn -mcpu=SI -verify-machineinstrs | FileCheck %s --check-prefix=SI --check-prefix=FUNC
+; RUN: llc < %s -march=amdgcn -mcpu=tonga -verify-machineinstrs | FileCheck %s --check-prefix=VI --check-prefix=FUNC
+; RUN: llc < %s -march=amdgcn -mcpu=fiji -verify-machineinstrs | FileCheck %s --check-prefix=VI --check-prefix=FUNC
 
 ; FUNC-LABEL: {{^}}u32_mad24:
 ; EG: MULADD_UINT24
 ; SI: v_mad_u32_u24
+; VI: v_mad_u32_u24
 
 define void @u32_mad24(i32 addrspace(1)* %out, i32 %a, i32 %b, i32 %c) {
 entry:
@@ -27,7 +29,7 @@ entry:
 ; EG: 16
 ; SI: v_mad_u32_u24 [[MAD:v[0-9]]], {{[sv][0-9], [sv][0-9]}}
 ; SI: v_bfe_i32 v{{[0-9]}}, [[MAD]], 0, 16
-
+; VI: v_mad_i16 [[MAD:v[0-9]]], {{[sv][0-9], [sv][0-9]}}
 define void @i16_mad24(i32 addrspace(1)* %out, i16 %a, i16 %b, i16 %c) {
 entry:
   %0 = mul i16 %a, %b
@@ -44,7 +46,8 @@ entry:
 ; EG: 8
 ; SI: v_mad_u32_u24 [[MUL:v[0-9]]], {{[sv][0-9], [sv][0-9]}}
 ; SI: v_bfe_i32 v{{[0-9]}}, [[MUL]], 0, 8
-
+; VI: v_mad_i16 [[MUL:v[0-9]]], {{[sv][0-9], [sv][0-9]}}
+; VI: v_bfe_i32 v{{[0-9]}}, [[MUL]], 0, 8
 define void @i8_mad24(i32 addrspace(1)* %out, i8 %a, i8 %b, i8 %c) {
 entry:
   %0 = mul i8 %a, %b

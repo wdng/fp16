@@ -249,11 +249,87 @@ def : Pat<
     (V_CVT_F16_F32_e32 $src)
 >;
 
+/*
+// Note: 16-bit instructions produce a 0 result in the high 16-bits.
+multiclass Tenary_i16_Pats <SDPatternOperator op1, SDPatternOperator op2, Instruction inst, SDPatternOperator op3> {
+def : Pat<
+  (op2 (op1 i16:$src0, i16:$src1), i16:$src2),
+  (inst i16:$src0, i16:$src1, i16:$src2)
+>;
+
+def : Pat<
+  (i32 (op3 (op2 (op1 i16:$src0, i16:$src1), i16:$src2))),
+  (inst i16:$src0, i16:$src1, i16:$src2)
+>;
+
+def : Pat<
+  (i64 (op3 (op2 (op1 i16:$src0, i16:$src1), i16:$src2))),
+   (REG_SEQUENCE VReg_64,
+     (inst i16:$src0, i16:$src1, i16:$src2), sub0,
+     (S_MOV_B32 (i32 0)), sub1)
+>;
+}
+
+defm: Tenary_i16_Pats<add, mul, V_MAD_U16, zext>;
+defm: Tenary_i16_Pats<add, mul, V_MAD_I16, sext>;
+*/
+
+/*
+def : Pat<
+    (add (mul i16:$src0, i16:$src1), i16:$src2),
+    (V_MAD_I16 i16:$src0, i16:$src1, i16:$src2)
+>; */
+
+// Note: 16-bit instructions produce a 0 result in the high 16-bits.
+
+def : Pat<
+  (add (mul i16:$src0, i16:$src1), i16:$src2),
+  (V_MAD_I16 i16:$src0, i16:$src1, i16:$src2)
+>;
+
+def : Pat<
+  (i32 (sext (add (mul i16:$src0, i16:$src1), i16:$src2))),
+  (V_MAD_I16 i16:$src0, i16:$src1, i16:$src2)
+>;
+
+def : Pat<
+  (i64 (sext (add (mul i16:$src0, i16:$src1), i16:$src2))),
+   (REG_SEQUENCE VReg_64,
+     (V_MAD_I16 i16:$src0, i16:$src1, i16:$src2), sub0,
+     (S_MOV_B32 (i32 0)), sub1)
+>;
+
+def : Pat<
+  (add (mul i16:$src0, i16:$src1), i16:$src2),
+  (V_MAD_U16 i16:$src0, i16:$src1, i16:$src2)
+>;
+
+def : Pat<
+  (i32 (zext (add (mul i16:$src0, i16:$src1), i16:$src2))),
+  (V_MAD_U16 i16:$src0, i16:$src1, i16:$src2)
+>;
+
+def : Pat<
+  (i64 (zext (add (mul i16:$src0, i16:$src1), i16:$src2))),
+   (REG_SEQUENCE VReg_64,
+     (V_MAD_U16 i16:$src0, i16:$src1, i16:$src2), sub0,
+     (S_MOV_B32 (i32 0)), sub1)
+>;
+//////////////////////////////////////////////////////////
+
+//defm: Tenary_i16_Pats<add, mul, V_MAD_I16>;
+
+
+
+defm : Arithmetic_i16_Pats<mul, V_MUL_F16_e32>;
 
 defm : Arithmetic_i16_Pats<add, V_ADD_U16_e32>;
 defm : Arithmetic_i16_Pats<sub, V_SUB_U16_e32>;
-defm : Arithmetic_i16_Pats<smin, V_MIN_U16_e32>;
-defm : Arithmetic_i16_Pats<smax, V_MAX_U16_e32>;
+defm : Arithmetic_i16_Pats<smin, V_MIN_I16_e32>;
+defm : Arithmetic_i16_Pats<smax, V_MAX_I16_e32>;
+defm : Arithmetic_i16_Pats<umin, V_MIN_U16_e32>;
+defm : Arithmetic_i16_Pats<umax, V_MAX_U16_e32>;
+
 
 defm : Arithmetic_i16_Pats<and, V_AND_B32_e32>;
 defm : Arithmetic_i16_Pats<or, V_OR_B32_e32>;

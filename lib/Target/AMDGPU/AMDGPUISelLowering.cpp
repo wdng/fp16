@@ -2369,6 +2369,10 @@ SDValue AMDGPUTargetLowering::performMulCombine(SDNode *N,
   if (VT.isVector() || Size > 64)
     return SDValue();
 
+  //there are i16 integer mul/mad
+  if (Subtarget->has16BitInsts() && VT.getScalarType().bitsLE(MVT::i16) )
+    return SDValue();
+
   SelectionDAG &DAG = DCI.DAG;
   SDLoc DL(N);
 
