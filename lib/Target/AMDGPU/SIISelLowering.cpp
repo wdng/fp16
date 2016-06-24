@@ -107,7 +107,9 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::STORE, MVT::v4i32, Custom);
   setOperationAction(ISD::STORE, MVT::v8i32, Custom);
   setOperationAction(ISD::STORE, MVT::v16i32, Custom);
+
   setOperationAction(ISD::STORE, MVT::i1, Custom);
+  setOperationAction(ISD::STORE, MVT::v4i32, Custom);
 
   setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
   setOperationAction(ISD::GlobalAddress, MVT::i64, Custom);
@@ -349,9 +351,9 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
     setOperationAction(ISD::SIGN_EXTEND, MVT::i16, Promote);
     AddPromotedToType(ISD::SIGN_EXTEND, MVT::i16, MVT::i32);
 
-    setOperationAction(ISD::AND, MVT::i16, Promote);
-    setOperationAction(ISD::OR, MVT::i16, Promote);
-    setOperationAction(ISD::XOR, MVT::i16, Promote);
+    setOperationAction(ISD::AND, MVT::i16, Legal);
+    setOperationAction(ISD::OR, MVT::i16, Legal);
+    setOperationAction(ISD::XOR, MVT::i16, Legal);
 
     setOperationAction(ISD::ROTR, MVT::i16, Promote);
     setOperationAction(ISD::ROTL, MVT::i16, Promote);
@@ -361,8 +363,11 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
     setOperationAction(ISD::SREM, MVT::i16, Promote);
     setOperationAction(ISD::UREM, MVT::i16, Promote);
     setOperationAction(ISD::MUL, MVT::i16, Promote);
+    setOperationAction(ISD::FMAD, MVT::i16, Promote);
 
     setOperationAction(ISD::BSWAP, MVT::i16, Promote);
+    setOperationAction(ISD::BITREVERSE, MVT::i16, Promote);
+
     setOperationAction(ISD::CTTZ, MVT::i16, Promote);
     setOperationAction(ISD::CTTZ_ZERO_UNDEF, MVT::i16, Promote);
     setOperationAction(ISD::CTLZ, MVT::i16, Promote);
@@ -3381,8 +3386,26 @@ static SDValue performIntMed3ImmCombine(SelectionDAG &DAG, const SDLoc &SL,
   }
 
   EVT VT = K0->getValueType(0);
-  return DAG.getNode(Signed ? AMDGPUISD::SMED3 : AMDGPUISD::UMED3, SL, VT,
-                     Op0.getOperand(0), SDValue(K0, 0), SDValue(K1, 0));
+
+  MVT NVT = MVT::i32;
+  unsigned ExtOp;
+  ExtOp = Signed ? ISD::SIGN_EXTEND : ISD::ZERO_EXTEND;	
+    
+  SDValue Tmp1, Tmp2, Tmp3;
+  Tmp1 = DAG.getNode(ExtOp, SL, NVT, Op0->getOperand(0));
+  Tmp2 = DAG.getNode(ExtOp, SL, NVT, Op0->getOperand(1));
+  Tmp3 = DAG.getNode(ExtOp, SL, NVT, Op1);
+ 
+  if (VT == MVT::i16)
+  {
+    Tmp1 = DAG.getNode(Signed ? AMDGPUISD::SMED3 : AMDGPUISD::UMED3, SL, NVT,
+ 			                Tmp1, Tmp2, Tmp3);
+
+    return DAG.getNode(ISD::TRUNCATE, SL, VT, Tmp1);	
+  }
+  else
+    return DAG.getNode(Signed ? AMDGPUISD::SMED3 : AMDGPUISD::UMED3, SL, VT,
+  					 Op0.getOperand(0), SDValue(K0, 0), SDValue(K1, 0));
 }
 
 static bool isKnownNeverSNan(SelectionDAG &DAG, SDValue Op) {
@@ -3530,7 +3553,7 @@ SDValue SITargetLowering::PerformDAGCombine(SDNode *N,
   case AMDGPUISD::FMAX_LEGACY: {
     if (DCI.getDAGCombineLevel() >= AfterLegalizeDAG &&
         N->getValueType(0) != MVT::f64 &&
-        N->getValueType(0) != MVT::i16 &&    //wei
+       // N->getValueType(0) != MVT::i16 &&    //wei
         getTargetMachine().getOptLevel() > CodeGenOpt::None)
       return performMinMaxCombine(N, DCI);
     break;
