@@ -16,8 +16,8 @@ entry:
 
 ; GCN-LABEL: {{^}}s_anyext_i16_i32:
 ; VI: v_add_u16_e32 [[ADD:v[0-9]+]],
-; VI: v_not_b32_e32 [[NOT:v[0-9]+]], [[ADD]]
-; VI: v_and_b32_e32 [[AND:v[0-9]+]], 1, [[NOT]]
+; VI: v_xor_b32_e32 [[XOR:v[0-9]+]], -1, [[ADD]]
+; VI: v_and_b32_e32 [[AND:v[0-9]+]], 1, [[XOR]]
 ; VI: buffer_store_dword [[AND]]
 define void @s_anyext_i16_i32(i32 addrspace(1)* %out, i16 %a, i16 %b) {
 entry:
