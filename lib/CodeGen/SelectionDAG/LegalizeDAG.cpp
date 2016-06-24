@@ -861,10 +861,12 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
         // If the source type is not legal, see if there is a legal extload to
         // an intermediate type that we can then extend further.
         EVT LoadVT = TLI.getRegisterType(SrcVT.getSimpleVT());
+
         if (TLI.isTypeLegal(SrcVT) || // Same as SrcVT == LoadVT?
             TLI.isLoadExtLegal(ExtType, LoadVT, SrcVT)) {
           // If we are loading a legal type, this is a non-extload followed by a
           // full extend.
+
           ISD::LoadExtType MidExtType =
               (LoadVT == SrcVT) ? ISD::NON_EXTLOAD : ExtType;
 
@@ -885,6 +887,22 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
           EVT ISrcVT = SrcVT.changeTypeToInteger();
           EVT IDestVT = DestVT.changeTypeToInteger();
           EVT LoadVT = TLI.getRegisterType(IDestVT.getSimpleVT());
+
+          if (TLI.isOperationLegalOrCustom(ISD::LOAD, ISrcVT)) {
+            LoadVT = ISrcVT;
+            DestVT = ISrcVT;
+          }
+          else {
+            // Scan for the appropriate larger type to use.
+            while (1) {
+              LoadVT = (MVT::SimpleValueType)(ISrcVT.getSimpleVT().SimpleTy+1);
+              assert(LoadVT.isInteger() && "Ran out of possibilities!");
+
+              if (TLI.isLoadExtLegalOrCustom(ISD::ZEXTLOAD, DestVT, ISrcVT.getSimpleVT())) {
+                break;
+              }
+            }
+          }
 
           SDValue Result = DAG.getExtLoad(ISD::ZEXTLOAD, dl, LoadVT,
                                           Chain, Ptr, ISrcVT,
@@ -4156,6 +4174,27 @@ void SelectionDAGLegalize::PromoteNode(SDNode *Node) {
       UpdatedNodes->insert(Chain.getNode());
     }
     ReplacedNode(Node);
+    break;
+  }
+  case ISD::SDIV:
+  case ISD::SREM:
+  case ISD::UDIV:
+  case ISD::UREM: {
+    unsigned ExtOp, TruncOp;
+    if (OVT.isVector()) {
+      ExtOp   = ISD::BITCAST;
+      TruncOp = ISD::BITCAST;
+    } else {
+      assert(OVT.isInteger() && "Cannot promote logic operation");
+      ExtOp   = ISD::ZERO_EXTEND;
+      TruncOp = ISD::TRUNCATE;
+    }
+    // Promote each of the values to the new type.
+    Tmp1 = DAG.getNode(ExtOp, dl, NVT, Node->getOperand(0));
+    Tmp2 = DAG.getNode(ExtOp, dl, NVT, Node->getOperand(1));
+    // Perform the larger operation, then convert back
+    Tmp1 = DAG.getNode(Node->getOpcode(), dl, NVT, Tmp1, Tmp2);
+    Results.push_back(DAG.getNode(TruncOp, dl, OVT, Tmp1));
     break;
   }
   case ISD::AND:
