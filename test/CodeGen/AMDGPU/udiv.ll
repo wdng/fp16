@@ -1,5 +1,5 @@
 ; RUN: llc -march=amdgcn -mcpu=verde -verify-machineinstrs < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
-; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=SI -check-prefix=FUNC %s
+; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=SI -check-prefix=VI -check-prefix=FUNC %s
 ; RUN: llc -march=r600 -mcpu=redwood < %s | FileCheck -check-prefix=EG -check-prefix=FUNC %s
 
 ; FUNC-LABEL: {{^}}udiv_i32:
@@ -108,7 +108,7 @@ define void @v_udiv_i8(i32 addrspace(1)* %out, i8 addrspace(1)* %in) {
 
 ; FUNC-LABEL: {{^}}v_udiv_i16:
 ; SI: v_rcp_f32
-; SI: v_and_b32_e32 [[TRUNC:v[0-9]+]], 0xffff, v{{[0-9]+}}
+; VI: v_add_u16_e32
 ; SI: buffer_store_dword [[TRUNC]]
 define void @v_udiv_i16(i32 addrspace(1)* %out, i16 addrspace(1)* %in) {
   %den_ptr = getelementptr i16, i16 addrspace(1)* %in, i16 1
