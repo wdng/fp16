@@ -587,9 +587,10 @@ bool AMDGPUTargetLowering::isTruncateFree(EVT Source, EVT Dest) const {
 
   unsigned SrcSize = Source.getSizeInBits();
   unsigned DestSize = Dest.getSizeInBits();
-  
-  if (DestSize == 16 && Subtarget->has16BitInsts()) 
-  	return SrcSize >= 32;
+
+  if (DestSize == 16 &&
+      Subtarget->getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS)
+    return SrcSize >= 32;
 
   return DestSize < SrcSize && DestSize % 32 == 0 ;
 }
@@ -600,8 +601,9 @@ bool AMDGPUTargetLowering::isTruncateFree(Type *Source, Type *Dest) const {
   unsigned SrcSize = Source->getScalarSizeInBits();
   unsigned DestSize = Dest->getScalarSizeInBits();
 
-  if (DestSize== 16 && Subtarget->has16BitInsts()) 
-  	return SrcSize >= 32;
+  if (DestSize== 16 && 
+      Subtarget->getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS)
+    return SrcSize >= 32;
 
   return DestSize < SrcSize && DestSize % 32 == 0;
 }
@@ -610,8 +612,9 @@ bool AMDGPUTargetLowering::isZExtFree(Type *Src, Type *Dest) const {
   unsigned SrcSize = Src->getScalarSizeInBits();
   unsigned DestSize = Dest->getScalarSizeInBits();
 
-  if (SrcSize== 16 && Subtarget->has16BitInsts()) 
-      return DestSize >= 32;
+  if (SrcSize== 16 && 
+      Subtarget->getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS)
+    return DestSize >= 32;
 
   return SrcSize == 32 && DestSize == 64;
 }
@@ -624,7 +627,7 @@ bool AMDGPUTargetLowering::isZExtFree(EVT Src, EVT Dest) const {
 
   if (Src == MVT::i16)
   	return Dest == MVT::i32 ||Dest == MVT::i64 ;
-  
+
   return Src == MVT::i32 && Dest == MVT::i64;
 }
 
@@ -2370,7 +2373,8 @@ SDValue AMDGPUTargetLowering::performMulCombine(SDNode *N,
     return SDValue();
 
   //there are i16 integer mul/mad
-  if (Subtarget->has16BitInsts() && VT.getScalarType().bitsLE(MVT::i16) )
+  if (Subtarget->getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS && 
+      VT.getScalarType().bitsLE(MVT::i16) )
     return SDValue();
 
   SelectionDAG &DAG = DCI.DAG;

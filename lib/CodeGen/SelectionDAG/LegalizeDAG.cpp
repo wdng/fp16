@@ -496,7 +496,7 @@ void SelectionDAGLegalize::LegalizeStoreOps(SDNode *Node) {
       }
     } else {
       SDValue Value = ST->getValue();
-      MVT VT = Value.getSimpleValueType();  
+      MVT VT = Value.getSimpleValueType();
       EVT StVT = ST->getMemoryVT();
       unsigned StWidth = StVT.getSizeInBits();
       auto &DL = DAG.getDataLayout();
@@ -596,10 +596,10 @@ void SelectionDAGLegalize::LegalizeStoreOps(SDNode *Node) {
 	      assert(StVT.isInteger() && "type is an integer");
 	      Value = DAG.getNode(ISD::ANY_EXTEND, dl, NVT, ST->getValue());
 	      SDValue Result = DAG.getTruncStore(Chain, dl, Value, Ptr, ST->getPointerInfo(),
-							  StVT, isVolatile, isNonTemporal, Alignment, AAInfo);
+							  StVT, Alignment, MMOFlags, AAInfo);
 	      ReplaceNode(SDValue(Node, 0), Result);
           break;
-        }	
+        }
         case TargetLowering::Expand:
           assert(!StVT.isVector() &&
                  "Vector Stores are handled in LegalizeVectorOps");
@@ -853,8 +853,8 @@ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
 									LD->getMemOperand());
 	  Value = DAG.getNode(ISD::TRUNCATE, dl, Node->getValueType(0), Load);
 	  Chain = Load.getValue(1);
-	  break;  
-    }  
+	  break;
+    }
     case TargetLowering::Expand:
       EVT DestVT = Node->getValueType(0);
       if (!TLI.isLoadExtLegal(ISD::EXTLOAD, DestVT, SrcVT)) {

@@ -337,11 +337,11 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
     //setOperationAction(ISD::UMIN, MVT::i16, Legal);
     setOperationAction(ISD::UMIN, MVT::i16, Promote);
     AddPromotedToType(ISD::UMIN, MVT::i16, MVT::i32);
-	
+
     //setOperationAction(ISD::UMAX, MVT::i16, Legal);
     setOperationAction(ISD::UMAX, MVT::i16, Promote);
     AddPromotedToType(ISD::UMAX, MVT::i16, MVT::i32);
-	
+
 
     //setOperationAction(ISD::SETCC, MVT::i16, Legal);
     setOperationAction(ISD::SETCC, MVT::i16, Promote);   // wei
@@ -404,7 +404,7 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
 	AddPromotedToType(ISD::FP16_TO_FP, MVT::i16, MVT::i32);
     setOperationAction(ISD::FP_TO_FP16, MVT::i16, Promote);
 	AddPromotedToType(ISD::FP_TO_FP16, MVT::i16, MVT::i32);
-	
+
   }
 
   setTargetDAGCombine(ISD::FADD);
@@ -740,7 +740,7 @@ bool SITargetLowering::isTypeDesirableForOp(unsigned Op, EVT VT) const {
   return TargetLowering::isTypeDesirableForOp(Op, VT);
 }
 
-SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG,
+SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG, 
                                             const SDLoc &SL, SDValue Chain,
                                             unsigned Offset) const {
   const DataLayout &DL = DAG.getDataLayout();
@@ -748,16 +748,14 @@ SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG,
   const SIRegisterInfo *TRI = getSubtarget()->getRegisterInfo();
   unsigned InputPtrReg = TRI->getPreloadedValue(MF, SIRegisterInfo::KERNARG_SEGMENT_PTR);
 
-  Type *Ty = VT.getTypeForEVT(*DAG.getContext());
-
   MachineRegisterInfo &MRI = DAG.getMachineFunction().getRegInfo();
   MVT PtrVT = getPointerTy(DL, AMDGPUAS::CONSTANT_ADDRESS);
-  PointerType *PtrTy = PointerType::get(Ty, AMDGPUAS::CONSTANT_ADDRESS);
   SDValue BasePtr = DAG.getCopyFromReg(Chain, SL,
                                        MRI.getLiveInVirtReg(InputPtrReg), PtrVT);
   return DAG.getNode(ISD::ADD, SL, PtrVT, BasePtr,
                      DAG.getConstant(Offset, SL, PtrVT));
 }
+
 SDValue SITargetLowering::LowerParameter(SelectionDAG &DAG, EVT VT, EVT MemVT,
                                          const SDLoc &SL, SDValue Chain,
                                          unsigned Offset, bool Signed) const {
@@ -850,9 +848,6 @@ SDValue SITargetLowering::LowerFormalArguments(
       } else {
         Splits.push_back(Arg);
       }
-
-    } else if (Info->getShaderType() != ShaderType::COMPUTE) {
-      Splits.push_back(Arg);
     }
   }
 
@@ -2602,7 +2597,6 @@ SDValue SITargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
     return DAG.getMergeValues(Ops, DL);
   }
 
-  unsigned NumElements = MemVT.getVectorNumElements();
   switch (AS) {
   case AMDGPUAS::CONSTANT_ADDRESS:
     if (isMemOpUniform(Load))
@@ -3389,19 +3383,19 @@ static SDValue performIntMed3ImmCombine(SelectionDAG &DAG, const SDLoc &SL,
 
   MVT NVT = MVT::i32;
   unsigned ExtOp;
-  ExtOp = Signed ? ISD::SIGN_EXTEND : ISD::ZERO_EXTEND;	
-    
+  ExtOp = Signed ? ISD::SIGN_EXTEND : ISD::ZERO_EXTEND;
+
   SDValue Tmp1, Tmp2, Tmp3;
   Tmp1 = DAG.getNode(ExtOp, SL, NVT, Op0->getOperand(0));
   Tmp2 = DAG.getNode(ExtOp, SL, NVT, Op0->getOperand(1));
   Tmp3 = DAG.getNode(ExtOp, SL, NVT, Op1);
- 
+
   if (VT == MVT::i16)
   {
     Tmp1 = DAG.getNode(Signed ? AMDGPUISD::SMED3 : AMDGPUISD::UMED3, SL, NVT,
  			                Tmp1, Tmp2, Tmp3);
 
-    return DAG.getNode(ISD::TRUNCATE, SL, VT, Tmp1);	
+    return DAG.getNode(ISD::TRUNCATE, SL, VT, Tmp1);
   }
   else
     return DAG.getNode(Signed ? AMDGPUISD::SMED3 : AMDGPUISD::UMED3, SL, VT,

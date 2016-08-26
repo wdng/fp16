@@ -976,10 +976,6 @@ def VOP_I16_I16_I16 : VOPProfile <[i32, i32, i32, untyped]>;
 def VOP_I16_I16_I16_I16 : VOPProfile <[i32, i32, i32, i32, untyped]>;
 def VOP_F16_F16_F16_F16 : VOPProfile <[f16, f16, f16, f16, untyped]>;
 
-
-def VOP_I16_I16_I16_I16 : VOPProfile <[i32, i32, i32, i32, untyped]>;
-def VOP_F16_F16_F16_F16 : VOPProfile <[f16, f16, f16, f16, untyped]>;
-
 def VOP_NONE : VOPProfile <[untyped, untyped, untyped, untyped]>;
 
 def VOP_F32_F32 : VOPProfile <[f32, f32, untyped, untyped]>;

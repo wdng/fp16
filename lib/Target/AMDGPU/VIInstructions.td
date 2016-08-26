@@ -114,17 +114,6 @@ def : Pat <
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-// DS_PERMUTE/DS_BPERMUTE Instructions.
-//===----------------------------------------------------------------------===//
-
-let Uses = [EXEC] in {
-defm DS_PERMUTE_B32 : DS_1A1D_PERMUTE <0x3e, "ds_permute_b32", VGPR_32,
-                                       int_amdgcn_ds_permute>;
-defm DS_BPERMUTE_B32 : DS_1A1D_PERMUTE <0x3f, "ds_bpermute_b32", VGPR_32,
-                                       int_amdgcn_ds_bpermute>;
-}
-
-//===----------------------------------------------------------------------===//
 // i16 Patterns
 //===----------------------------------------------------------------------===//
 
@@ -161,7 +150,7 @@ def : Pat<
 >;
 
 def : Pat<
-  (i32 (zext i16:$src)), 
+  (i32 (zext i16:$src)),
   (S_AND_B32 (i32 0xffff), $src)
 >;
 
@@ -239,12 +228,12 @@ def : Pat<
 
 //conversion patterns
 
-def : Pat< 
+def : Pat<
     (f32 (f16_to_fp i16:$src)),
     (V_CVT_F32_F16_e32 $src)
 >;
 
-def : Pat< 
+def : Pat<
     (i16 (fp_to_f16 f32:$src)),
     (V_CVT_F16_F32_e32 $src)
 >;

@@ -1187,13 +1187,18 @@ def : Pat <
 
 def : Pat <
   (i64 (zext i32:$src)),
-  (REG_SEQUENCE SReg_64, $src, sub0, (S_MOV_B32 0), sub1)
+  (REG_SEQUENCE SReg_64, $src, sub0, (S_MOV_B32 (i32 0)), sub1)
 >;
 
 def : Pat <
   (i64 (anyext i32:$src)),
   (REG_SEQUENCE SReg_64, $src, sub0, (i32 (IMPLICIT_DEF)), sub1)
 >;
+
+class ZExt_i64_i32_Pat <SDNode ext> : Pat <
+  (i64 (ext i32:$src)),
+    (REG_SEQUENCE SReg_64, $src, sub0, (S_MOV_B32 (i32 0)), sub1)
+	>;
 
 class ZExt_i64_i1_Pat <SDNode ext> : Pat <
   (i64 (ext i1:$src)),
@@ -1223,15 +1228,15 @@ def : Pat <
     (V_CNDMASK_B32_e64 (i32 0), (i32 -1), $src), sub1)
 >;
 
-class FPToI1Pat<Instruction Inst, int KOne, ValueType vt, SDPatternOperator fp_to_int> : Pat <
+class FPToI1Pat<Instruction Inst, int KOne, ValueType kone_type, ValueType vt, SDPatternOperator fp_to_int> : Pat <
   (i1 (fp_to_int (vt (VOP3Mods vt:$src0, i32:$src0_modifiers)))),
-  (i1 (Inst 0, KOne, $src0_modifiers, $src0, DSTCLAMP.NONE, DSTOMOD.NONE))
+  (i1 (Inst 0, (kone_type KOne), $src0_modifiers, $src0, DSTCLAMP.NONE, DSTOMOD.NONE))
 >;
 
-def : FPToI1Pat<V_CMP_EQ_F32_e64, CONST.FP32_ONE, f32, fp_to_uint>;
-def : FPToI1Pat<V_CMP_EQ_F32_e64, CONST.FP32_NEG_ONE, f32, fp_to_sint>;
-def : FPToI1Pat<V_CMP_EQ_F64_e64, CONST.FP64_ONE, f64, fp_to_uint>;
-def : FPToI1Pat<V_CMP_EQ_F64_e64, CONST.FP64_NEG_ONE, f64, fp_to_sint>;
+def : FPToI1Pat<V_CMP_EQ_F32_e64, CONST.FP32_ONE, i32, f32, fp_to_uint>;
+def : FPToI1Pat<V_CMP_EQ_F32_e64, CONST.FP32_NEG_ONE, i32, f32, fp_to_sint>;
+def : FPToI1Pat<V_CMP_EQ_F64_e64, CONST.FP64_ONE, i64, f64, fp_to_uint>;
+def : FPToI1Pat<V_CMP_EQ_F64_e64, CONST.FP64_NEG_ONE, i64, f64, fp_to_sint>;
 
 // If we need to perform a logical operation on i1 values, we need to
 // use vector comparisons since there is only one SCC register. Vector
@@ -1325,7 +1330,7 @@ def : BFEPattern <V_BFE_U32, S_MOV_B32>;
 
 def : Pat<
   (fcanonicalize f32:$src),
-  (V_MUL_F32_e64 0, CONST.FP32_ONE, 0, $src, 0, 0)
+  (V_MUL_F32_e64 0, (i32 CONST.FP32_ONE), 0, $src, 0, 0)
 >;
 
 def : Pat<
