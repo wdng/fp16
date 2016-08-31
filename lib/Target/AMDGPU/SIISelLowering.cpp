@@ -740,7 +740,7 @@ bool SITargetLowering::isTypeDesirableForOp(unsigned Op, EVT VT) const {
   return TargetLowering::isTypeDesirableForOp(Op, VT);
 }
 
-SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG, 
+SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG,
                                             const SDLoc &SL, SDValue Chain,
                                             unsigned Offset) const {
   const DataLayout &DL = DAG.getDataLayout();
@@ -755,7 +755,6 @@ SDValue SITargetLowering::LowerParameterPtr(SelectionDAG &DAG,
   return DAG.getNode(ISD::ADD, SL, PtrVT, BasePtr,
                      DAG.getConstant(Offset, SL, PtrVT));
 }
-
 SDValue SITargetLowering::LowerParameter(SelectionDAG &DAG, EVT VT, EVT MemVT,
                                          const SDLoc &SL, SDValue Chain,
                                          unsigned Offset, bool Signed) const {
@@ -2586,8 +2585,6 @@ SDValue SITargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
 
   assert(Op.getValueType().getVectorElementType() == MVT::i32 &&
          "Custom lowering for non-i32 vectors hasn't been implemented.");
-  unsigned NumElements = MemVT.getVectorNumElements();
-  assert(NumElements != 2 && "v2 loads are supported for all address spaces.");
 
   unsigned AS = Load->getAddressSpace();
   if (!allowsMemoryAccess(*DAG.getContext(), DAG.getDataLayout(), MemVT,
@@ -2597,6 +2594,7 @@ SDValue SITargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
     return DAG.getMergeValues(Ops, DL);
   }
 
+  unsigned NumElements = MemVT.getVectorNumElements();
   switch (AS) {
   case AMDGPUAS::CONSTANT_ADDRESS:
     if (isMemOpUniform(Load))
