@@ -827,7 +827,7 @@ def : Pat <
   (i64 (ctpop i64:$src)),
     (i64 (REG_SEQUENCE SReg_64,
      (i32 (COPY_TO_REGCLASS (S_BCNT1_I32_B64 $src), SReg_32)), sub0,
-     (S_MOV_B32 0), sub1))
+     (S_MOV_B32 (i32 0)), sub1))
 >;
 
 def : Pat <
