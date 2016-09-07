@@ -347,7 +347,7 @@ def VReg_1 : RegisterClass<"AMDGPU", [i1], 32, (add VGPR_32)> {
   let Size = 32;
 }
 
-def VS_32 : RegisterClass<"AMDGPU", [i32, f32], 32, (add VGPR_32, SReg_32)> {
+def VS_32 : RegisterClass<"AMDGPU", [i32, f32, i16], 32, (add VGPR_32, SReg_32)> {
   let isAllocatable = 0;
 }
 
