@@ -177,6 +177,7 @@ class ZExt_i16_i1_Pat <SDNode ext> : Pat <
 >;
 
 def : ZExt_i16_i1_Pat<zext>;
+def : ZExt_i16_i1_Pat<sext>;
 def : ZExt_i16_i1_Pat<anyext>;
 
 def : Pat <

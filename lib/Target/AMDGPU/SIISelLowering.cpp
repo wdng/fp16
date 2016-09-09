@@ -334,14 +334,9 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
 
     setOperationAction(ISD::SMIN, MVT::i16, Legal);
     setOperationAction(ISD::SMAX, MVT::i16, Legal);
-    //setOperationAction(ISD::UMIN, MVT::i16, Legal);
-    setOperationAction(ISD::UMIN, MVT::i16, Promote);
-    AddPromotedToType(ISD::UMIN, MVT::i16, MVT::i32);
-
-    //setOperationAction(ISD::UMAX, MVT::i16, Legal);
-    setOperationAction(ISD::UMAX, MVT::i16, Promote);
-    AddPromotedToType(ISD::UMAX, MVT::i16, MVT::i32);
-
+	
+    setOperationAction(ISD::UMIN, MVT::i16, Legal);
+    setOperationAction(ISD::UMAX, MVT::i16, Legal);
 
     //setOperationAction(ISD::SETCC, MVT::i16, Legal);
     setOperationAction(ISD::SETCC, MVT::i16, Promote);   // wei
