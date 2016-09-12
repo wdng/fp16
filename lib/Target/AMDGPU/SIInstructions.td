@@ -769,7 +769,7 @@ def : Pat<
 
 def : Pat <
   (int_AMDGPU_kilp),
-  (SI_KILL 0xbf800000)
+  (SI_KILL (i32 0xbf800000))
 >;
 
 def : Pat <
