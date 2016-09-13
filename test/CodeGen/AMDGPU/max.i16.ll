@@ -65,7 +65,7 @@ define void @s_test_imax_sgt_imm_i16(i16 addrspace(1)* %out, i16 %a) nounwind {
 }
 
 ; GCN-LABEL: {{^}}s_test_imax_sgt_imm_v2i16:
-; VI: v_max_i16_e32 {{v[0-9]+}},  9, {{v[0-9]+}}
+; VI: v_max_i16_e32 {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
 ; VI: v_max_i16_e32 {{v[0-9]+}},  9, {{v[0-9]+}}
 define void @s_test_imax_sgt_imm_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> %a) nounwind {
   %cmp = icmp sgt <2 x i16> %a, <i16 9, i16 9>
@@ -159,8 +159,8 @@ define void @s_test_umax_ugt_i16(i16 addrspace(1)* %out, i16 %a, i16 %b) nounwin
 }
 
 ; GCN-LABEL: {{^}}s_test_umax_ugt_imm_v2i16:
-; VI: v_max_u16_e32 {{v[0-9]+}}, 15, {{v[0-9]+}}
-; VI: v_max_u16_e32 {{v[0-9]+}}, 23, {{v[0-9]+}}
+; VI-DAG: v_max_u16_e32 {{v[0-9]+}}, 23, {{v[0-9]+}}
+; VI-DAG: v_max_u16_e32 {{v[0-9]+}}, 15, {{v[0-9]+}}
 define void @s_test_umax_ugt_imm_v2i16(<2 x i16> addrspace(1)* %out, <2 x i16> %a) nounwind {
   %cmp = icmp ugt <2 x i16> %a, <i16 15, i16 23>
   %val = select <2 x i1> %cmp, <2 x i16> %a, <2 x i16> <i16 15, i16 23>
