@@ -82,7 +82,7 @@ define void @v_test_add_i16_zext_to_i32(i32 addrspace(1)* %out, i16 addrspace(1)
 ; VI: flat_load_ushort [[B:v[0-9]+]]
 ; VI-DAG: v_add_u16_e32 v[[ADD:[0-9]+]], [[A]], [[B]]
 ; VI-DAG: v_mov_b32_e32 v[[VZERO:[0-9]+]], {{s[0-9]+}}
-; VI: buffer_store_dwordx2 v{{\[}}[[ADD]]:[[VZERO]]{{\]}}, {{s\[[0-9]+:[0-9]+\]}}, 0{{$}}
+; VI: buffer_store_dwordx2 v{{\[}}[[ADD]]:[[VZERO]]{{\]}}, off, {{s\[[0-9]+:[0-9]+\]}}, 0{{$}}
 define void @v_test_add_i16_zext_to_i64(i64 addrspace(1)* %out, i16 addrspace(1)* %in0, i16 addrspace(1)* %in1) #1 {
   %tid = call i32 @llvm.amdgcn.workitem.id.x()
   %gep.out = getelementptr inbounds i64, i64 addrspace(1)* %out, i32 %tid
@@ -136,10 +136,10 @@ define void @v_test_add_i16_sext_to_i64(i64 addrspace(1)* %out, i16 addrspace(1)
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16:
-; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 [[RESULT:v[0-9]+]], [[A]], [[B]]
-; VI: buffer_store_short [[RESULT]], s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_short [[RESULT]], off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16(i16 addrspace(1)* %out, i16 %a, i16 %b) #1 {
   %add = add i16 %a, %b
   store i16 %add, i16 addrspace(1)* %out
@@ -147,10 +147,10 @@ define void @s_test_add_i16(i16 addrspace(1)* %out, i16 %a, i16 %b) #1 {
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16_zeroext_args:
-; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 [[RESULT:v[0-9]+]], [[A]], [[B]]
-; VI: buffer_store_short [[RESULT]], s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_short [[RESULT]], off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16_zeroext_args(i16 addrspace(1)* %out, i16 zeroext %a, i16 zeroext %b) #1 {
   %add = add i16 %a, %b
   store i16 %add, i16 addrspace(1)* %out
@@ -158,10 +158,10 @@ define void @s_test_add_i16_zeroext_args(i16 addrspace(1)* %out, i16 zeroext %a,
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16_signext_args:
-; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 [[RESULT:v[0-9]+]], [[A]], [[B]]
-; VI: buffer_store_short [[RESULT]], s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_short [[RESULT]], off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16_signext_args(i16 addrspace(1)* %out, i16 signext %a, i16 signext %b) #1 {
   %add = add i16 %a, %b
   store i16 %add, i16 addrspace(1)* %out
@@ -169,10 +169,10 @@ define void @s_test_add_i16_signext_args(i16 addrspace(1)* %out, i16 signext %a,
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16_zext_to_i32:
-; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort [[A:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort [[B:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 [[RESULT:v[0-9]+]], [[A]], [[B]]
-; VI: buffer_store_dword [[RESULT]], s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_dword [[RESULT]], off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16_zext_to_i32(i32 addrspace(1)* %out, i16 zeroext %a, i16 zeroext %b) #1 {
   %add = add i16 %a, %b
   %ext = zext i16 %add to i32
@@ -181,10 +181,10 @@ define void @s_test_add_i16_zext_to_i32(i32 addrspace(1)* %out, i16 zeroext %a, 
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16_zext_to_i64:
-; VI-DAG: buffer_load_ushort v[[A:[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort v[[B:[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort v[[A:[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort v[[B:[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 [[RESULT:v[0-9]+]], v[[A]], v[[B]]
-; VI: buffer_store_dwordx2 v{{\[}}[[A]]:[[B]]{{\]}}, s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_dwordx2 v{{\[}}[[A]]:[[B]]{{\]}}, off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16_zext_to_i64(i64 addrspace(1)* %out, i16 zeroext %a, i16 zeroext %b) #1 {
   %add = add i16 %a, %b
   %ext = zext i16 %add to i64
@@ -193,11 +193,11 @@ define void @s_test_add_i16_zext_to_i64(i64 addrspace(1)* %out, i16 zeroext %a, 
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16_sext_to_i32:
-; VI-DAG: buffer_load_ushort v[[A:[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort v[[B:[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort v[[A:[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort v[[B:[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 [[ADD:v[0-9]+]], v[[A]], v[[B]]
 ; VI-NEXT: v_bfe_i32 [[RESULT:v[0-9]+]], [[ADD]], 0, 16
-; VI: buffer_store_dword [[RESULT]], s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_dword [[RESULT]], off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16_sext_to_i32(i32 addrspace(1)* %out, i16 signext %a, i16 signext %b) #1 {
   %add = add i16 %a, %b
   %ext = sext i16 %add to i32
@@ -206,12 +206,12 @@ define void @s_test_add_i16_sext_to_i32(i32 addrspace(1)* %out, i16 signext %a, 
 }
 
 ; GCN-LABEL: {{^}}s_test_add_i16_sext_to_i64:
-; VI-DAG: buffer_load_ushort v[[A:[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:44
-; VI-DAG: buffer_load_ushort v[[B:[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0 offset:46
+; VI-DAG: buffer_load_ushort v[[A:[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:44
+; VI-DAG: buffer_load_ushort v[[B:[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0 offset:46
 ; VI: v_add_u16_e32 v[[LO:[0-9]+]], v[[A]], v[[B]]
 ; VI-NEXT: v_bfe_i32 v[[LO]], v[[LO]], 0, 16
 ; VI-NEXT: v_ashrrev_i32_e32 v[[HI:[0-9]+]], 31, v[[LO]]
-; VI: buffer_store_dwordx2 v{{\[}}[[LO]]:[[HI]]{{\]}}, s[{{[0-9]+:[0-9]+}}], 0
+; VI: buffer_store_dwordx2 v{{\[}}[[LO]]:[[HI]]{{\]}}, off, s[{{[0-9]+:[0-9]+}}], 0
 define void @s_test_add_i16_sext_to_i64(i64 addrspace(1)* %out, i16 signext %a, i16 signext %b) #1 {
   %add = add i16 %a, %b
   %ext = sext i16 %add to i64
