@@ -1195,11 +1195,6 @@ def : Pat <
   (REG_SEQUENCE SReg_64, $src, sub0, (i32 (IMPLICIT_DEF)), sub1)
 >;
 
-class ZExt_i64_i32_Pat <SDNode ext> : Pat <
-  (i64 (ext i32:$src)),
-    (REG_SEQUENCE SReg_64, $src, sub0, (S_MOV_B32 (i32 0)), sub1)
-	>;
-
 class ZExt_i64_i1_Pat <SDNode ext> : Pat <
   (i64 (ext i1:$src)),
     (REG_SEQUENCE VReg_64,
@@ -1208,8 +1203,6 @@ class ZExt_i64_i1_Pat <SDNode ext> : Pat <
 >;
 
 
-def : ZExt_i64_i32_Pat<zext>;
-def : ZExt_i64_i32_Pat<anyext>;
 def : ZExt_i64_i1_Pat<zext>;
 def : ZExt_i64_i1_Pat<anyext>;
 

@@ -285,8 +285,6 @@ SITargetLowering::SITargetLowering(const TargetMachine &TM,
     setLoadExtAction(ISD::ZEXTLOAD, MVT::i16, MVT::i8, Promote);
     setLoadExtAction(ISD::EXTLOAD, MVT::i16, MVT::i8, Promote);
 
-	setOperationAction(ISD::FrameIndex, MVT::i16, Promote); /////
-
     setTruncStoreAction(MVT::i64, MVT::i16, Expand);
     setTruncStoreAction(MVT::i16, MVT::i8, Promote);
 
