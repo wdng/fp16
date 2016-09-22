@@ -835,6 +835,9 @@ SDValue SITargetLowering::LowerFormalArguments(
 
     if (VA.isMemLoc()) {
       VT = Ins[i].VT;
+      // for i16 to use register type i32
+      if (VT == MVT::i16)
+        VT = MVT::i32;
       EVT MemVT = VA.getLocVT();
       const unsigned Offset = Subtarget->getExplicitKernelArgOffset() +
                               VA.getLocMemOffset();
