@@ -521,8 +521,8 @@ def : DSWritePat <DS_WRITE_B64, v2i32, si_store_local_align8>;
 def : Pat <
   (si_store_local v2i32:$value, (DS64Bit4ByteAligned i32:$ptr, i8:$offset0,
                                                                i8:$offset1)),
-  (DS_WRITE2_B32 $ptr, (EXTRACT_SUBREG $value, sub0),
-                       (EXTRACT_SUBREG $value, sub1), $offset0, $offset1,
+  (DS_WRITE2_B32 $ptr, (i32 (EXTRACT_SUBREG $value, sub0)),
+                       (i32 (EXTRACT_SUBREG $value, sub1)), $offset0, $offset1,
                        (i1 0))
 >;
 
