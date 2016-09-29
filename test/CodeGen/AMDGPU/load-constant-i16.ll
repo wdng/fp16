@@ -1,6 +1,6 @@
-; RUN: llc -march=amdgcn -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=GCN-NOHSA -check-prefix=FUNC %s
+; RUN: llc -march=amdgcn -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=SI -check-prefix=GCN-NOHSA -check-prefix=FUNC %s
 ; RUN: llc -mtriple=amdgcn--amdhsa -mcpu=kaveri -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=GCN-HSA -check-prefix=FUNC %s
-; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=GCN-NOHSA -check-prefix=FUNC %s
+; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=VI -check-prefix=GCN-NOHSA -check-prefix=FUNC %s
 ; RUN: llc -march=r600 -mcpu=redwood < %s | FileCheck -check-prefix=EG -check-prefix=FUNC %s
 
 ; FUNC-LABEL: {{^}}constant_load_i16:
@@ -428,7 +428,8 @@ define void @constant_zextload_i16_to_i64(i64 addrspace(1)* %out, i16 addrspace(
 }
 
 ; FUNC-LABEL: {{^}}constant_sextload_i16_to_i64:
-; GCN-NOHSA-DAG: buffer_load_sshort v[[LO:[0-9]+]],
+; SI: buffer_load_sshort v[[LO:[0-9]+]],
+; VI: buffer_load_ushort v[[LO:[0-9]+]],
 ; GCN-HSA-DAG: flat_load_sshort v[[LO:[0-9]+]],
 ; GCN-DAG: v_ashrrev_i32_e32 v[[HI:[0-9]+]], 31, v[[LO]]
 

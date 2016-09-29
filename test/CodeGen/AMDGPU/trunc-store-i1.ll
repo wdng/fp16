@@ -1,5 +1,5 @@
 ; RUN: llc -march=amdgcn -mcpu=SI -verify-machineinstrs< %s | FileCheck -check-prefix=SI %s
-; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs< %s | FileCheck -check-prefix=SI %s
+; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs< %s | FileCheck -check-prefix=VI %s
 ; RUN: llc -march=amdgcn -mcpu=fiji -verify-machineinstrs< %s | FileCheck -check-prefix=VI %s
 
 
@@ -23,8 +23,9 @@ define void @global_truncstore_i64_to_i1(i1 addrspace(1)* %out, i64 %val) nounwi
 }
 
 ; SI-LABEL: {{^}}s_arg_global_truncstore_i16_to_i1:
-; VI: s_load_dwordx2 [[LOAD:s\[[0-9]+:[0-9]+\]]], s[{{[0-9]+:[0-9]+}}], 0x9 
+; VI: s_load_dwordx2 [[LOAD:s\[[0-9]+:[0-9]+\]]], s[{{[0-9]+:[0-9]+}}], 0x24
 ; SI: s_and_b32 [[SREG:s[0-9]+]], [[LOAD]], 1
+; VI: v_and_b32_e32 [[VREG:v[0-9]+]], s{{[0-9]+}},  v{{[0-9]+}}
 ; SI: v_mov_b32_e32 [[VREG:v[0-9]+]], [[SREG]]
 ; SI: buffer_store_byte [[VREG]],
 define void @s_arg_global_truncstore_i16_to_i1(i1 addrspace(1)* %out, i16 %val) nounwind {

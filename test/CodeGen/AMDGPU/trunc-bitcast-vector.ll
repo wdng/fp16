@@ -1,10 +1,10 @@
-; RUN: llc -march=amdgcn -verify-machineinstrs < %s | FileCheck %s
-; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck %s
-; RUN: llc -march=amdgcn -mcpu=fiji -verify-machineinstrs < %s | FileCheck %s
+; RUN: llc -march=amdgcn -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=SI %s
+; RUN: llc -march=amdgcn -mcpu=tonga -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=VI %s
+; RUN: llc -march=amdgcn -mcpu=fiji -verify-machineinstrs < %s | FileCheck -check-prefix=GCN -check-prefix=VI %s
 
-; CHECK-LABEL: {{^}}trunc_i64_bitcast_v2i32:
-; CHECK: buffer_load_dword v
-; CHECK: buffer_store_dword v
+; GCN-LABEL: {{^}}trunc_i64_bitcast_v2i32:
+; GCN: buffer_load_dword v
+; GCN: buffer_store_dword v
 define void @trunc_i64_bitcast_v2i32(i32 addrspace(1)* %out, <2 x i32> addrspace(1)* %in) {
   %ld = load <2 x i32>, <2 x i32> addrspace(1)* %in
   %bc = bitcast <2 x i32> %ld to i64
@@ -13,9 +13,9 @@ define void @trunc_i64_bitcast_v2i32(i32 addrspace(1)* %out, <2 x i32> addrspace
   ret void
 }
 
-; CHECK-LABEL: {{^}}trunc_i96_bitcast_v3i32:
-; CHECK: buffer_load_dword v
-; CHECK: buffer_store_dword v
+; GCN-LABEL: {{^}}trunc_i96_bitcast_v3i32:
+; GCN: buffer_load_dword v
+; GCN: buffer_store_dword v
 define void @trunc_i96_bitcast_v3i32(i32 addrspace(1)* %out, <3 x i32> addrspace(1)* %in) {
   %ld = load <3 x i32>, <3 x i32> addrspace(1)* %in
   %bc = bitcast <3 x i32> %ld to i96
@@ -24,9 +24,9 @@ define void @trunc_i96_bitcast_v3i32(i32 addrspace(1)* %out, <3 x i32> addrspace
   ret void
 }
 
-; CHECK-LABEL: {{^}}trunc_i128_bitcast_v4i32:
-; CHECK: buffer_load_dword v
-; CHECK: buffer_store_dword v
+; GCN-LABEL: {{^}}trunc_i128_bitcast_v4i32:
+; GCN: buffer_load_dword v
+; GCN: buffer_store_dword v
 define void @trunc_i128_bitcast_v4i32(i32 addrspace(1)* %out, <4 x i32> addrspace(1)* %in) {
   %ld = load <4 x i32>, <4 x i32> addrspace(1)* %in
   %bc = bitcast <4 x i32> %ld to i128
@@ -36,9 +36,9 @@ define void @trunc_i128_bitcast_v4i32(i32 addrspace(1)* %out, <4 x i32> addrspac
 }
 
 ; Don't want load width reduced in this case.
-; CHECK-LABEL: {{^}}trunc_i16_bitcast_v2i16:
-; CHECK: buffer_load_dword [[VAL:v[0-9]+]]
-; CHECK: buffer_store_short [[VAL]]
+; GCN-LABEL: {{^}}trunc_i16_bitcast_v2i16:
+; GCN: buffer_load_dword [[VAL:v[0-9]+]]
+; GCN: buffer_store_short [[VAL]]
 define void @trunc_i16_bitcast_v2i16(i16 addrspace(1)* %out, <2 x i16> addrspace(1)* %in) {
   %ld = load <2 x i16>, <2 x i16> addrspace(1)* %in
   %bc = bitcast <2 x i16> %ld to i32
@@ -47,9 +47,9 @@ define void @trunc_i16_bitcast_v2i16(i16 addrspace(1)* %out, <2 x i16> addrspace
   ret void
 }
 
-; CHECK-LABEL: {{^}}trunc_i16_bitcast_v4i16:
-; CHECK: buffer_load_dword [[VAL:v[0-9]+]]
-; CHECK: buffer_store_short [[VAL]]
+; GCN-LABEL: {{^}}trunc_i16_bitcast_v4i16:
+; GCN: buffer_load_dword [[VAL:v[0-9]+]]
+; GCN: buffer_store_short [[VAL]]
 define void @trunc_i16_bitcast_v4i16(i16 addrspace(1)* %out, <4 x i16> addrspace(1)* %in) {
   %ld = load <4 x i16>, <4 x i16> addrspace(1)* %in
   %bc = bitcast <4 x i16> %ld to i64
@@ -59,9 +59,9 @@ define void @trunc_i16_bitcast_v4i16(i16 addrspace(1)* %out, <4 x i16> addrspace
 }
 
 ; FIXME: Don't want load width reduced in this case.
-; CHECK-LABEL: {{^}}trunc_i8_bitcast_v2i8:
-; CHECK: buffer_load_ubyte [[VAL:v[0-9]+]], s[{{[0-9]+:[0-9]+}}], 0
-; CHECK: buffer_store_byte [[VAL]], s[{{[0-9]+:[0-9]+}}], 0
+; GCN-LABEL: {{^}}trunc_i8_bitcast_v2i8:
+; GCN: buffer_load_ubyte [[VAL:v[0-9]+]], off, s[{{[0-9]+:[0-9]+}}], 0
+; GCN: buffer_store_byte [[VAL]], off, s[{{[0-9]+:[0-9]+}}], 0
 define void @trunc_i8_bitcast_v2i8(i8 addrspace(1)* %out, <2 x i8> addrspace(1)* %in) {
   %ld = load <2 x i8>, <2 x i8> addrspace(1)* %in
   %bc = bitcast <2 x i8> %ld to i16
@@ -70,9 +70,9 @@ define void @trunc_i8_bitcast_v2i8(i8 addrspace(1)* %out, <2 x i8> addrspace(1)*
   ret void
 }
 
-; CHECK-LABEL: {{^}}trunc_i32_bitcast_v4i8:
-; CHECK: buffer_load_dword [[VAL:v[0-9]+]]
-; CHECK: buffer_store_byte [[VAL]]
+; GCN-LABEL: {{^}}trunc_i32_bitcast_v4i8:
+; GCN: buffer_load_dword [[VAL:v[0-9]+]]
+; GCN: buffer_store_byte [[VAL]]
 define void @trunc_i32_bitcast_v4i8(i8 addrspace(1)* %out, <4 x i8> addrspace(1)* %in) {
   %ld = load <4 x i8>, <4 x i8> addrspace(1)* %in
   %bc = bitcast <4 x i8> %ld to i32
@@ -81,9 +81,9 @@ define void @trunc_i32_bitcast_v4i8(i8 addrspace(1)* %out, <4 x i8> addrspace(1)
   ret void
 }
 
-; CHECK-LABEL: {{^}}trunc_i24_bitcast_v3i8:
-; CHECK: buffer_load_dword [[VAL:v[0-9]+]]
-; CHECK: buffer_store_byte [[VAL]]
+; GCN-LABEL: {{^}}trunc_i24_bitcast_v3i8:
+; GCN: buffer_load_dword [[VAL:v[0-9]+]]
+; GCN: buffer_store_byte [[VAL]]
 define void @trunc_i24_bitcast_v3i8(i8 addrspace(1)* %out, <3 x i8> addrspace(1)* %in) {
   %ld = load <3 x i8>, <3 x i8> addrspace(1)* %in
   %bc = bitcast <3 x i8> %ld to i24
